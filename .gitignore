@@ -1,3 +1,4 @@
-*.ini
 .ipynb_checkpoints/*
+.basic/demo/*
 *.mp4
+
