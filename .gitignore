@@ -1,4 +1,6 @@
 */.ipynb_checkpoints/*
+.ipynb_checkpoints/*
 .*/demos/*
 *.mp4
-
+*.ini
+/unfinished/*
