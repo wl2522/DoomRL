@@ -1,10 +1,10 @@
 # Basic Scenario
 
-In this scenario, the agent appears in the middle of one side of a room while a monster randomly appears somewhere along the wall on the other side of the room. The agent can perform the following actions:
+In this scenario, the agent appears in the middle of one side of a room with a pistol while a monster randomly appears somewhere along the wall on the other side of the room. The agent can perform the following actions:
 
 1. move left
 2. move right
-3. shoot
+3. shoot pistol
 
 The agent must shoot the monster once in order to win an episode. The episode automatically ends if the agent fails to do so within 300 time steps. For each time step, the agent receives -1 reward to encourage it to act quickly.
 
