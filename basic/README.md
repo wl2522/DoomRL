@@ -44,10 +44,10 @@ During the first 20% of the training epochs, the agent explores the environment 
 
 ### agent with no training playing the basic scenario for 20 episodes
 
-[![basic scenario random agent](https://lh3.googleusercontent.com/uJx0vUdRs4BLvRPAKVnmq2RtK3loA_MjPCog4HALs6pqJGKsOMwqNleU6hHW0LHzhZMP2cETfxw=w640)](https://drive.google.com/file/d/1ZqdB9cqy-GbpPF-OY1Cmp6w_hVogZK_p/view)
+[![basic scenario random agent](https://lh5.googleusercontent.com/Rv2DtdLZaS1fjcqhBgW95nnp8ruvBETi82whQ7I0ROJJOnT9p5Gn_A3I_H0JJq8hw6--nKknFefefDlWkfJE=w853-h480-n-k-rw)](https://drive.google.com/file/d/1ZqdB9cqy-GbpPF-OY1Cmp6w_hVogZK_p/view)
 
 (Pauses during the video are due to the episode resetting after the agent fails to shoot the monster within 300 time steps.)
 
 ### agent trained for 30 epochs playing the basic scenario for 20 episodes
 
-[![basic scenario trained agent](https://lh3.googleusercontent.com/ow9pMBjJ5PlsifZec9U9axNEWWVBnvdgt-0u2GO3VCRI9yMSZBE88xzplINomUlFH-WyEbOVcrA=w640)](https://drive.google.com/file/d/1azoMIdvmOAPBHoQTkVoNA8DRWw9iOCsm/view)
+[![basic scenario trained agent](https://lh6.googleusercontent.com/5EFiIQeLjokHr_jJEZcd-JhqavBYUDftu0oC91JzKZw5gTNk5XdNDboKUKlcj7wKGu7Nnrez1Izb9uYfPNWV=w853-h480-n-k-rw)](https://drive.google.com/file/d/1azoMIdvmOAPBHoQTkVoNA8DRWw9iOCsm/view)

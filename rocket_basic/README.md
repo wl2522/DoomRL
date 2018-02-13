@@ -44,10 +44,10 @@ During the first 20% of the training epochs, the agent explores the environment 
 
 ### agent with no training playing the rocket_basic scenario for 20 episodes
 
-[![rocket_basic scenario random agent](https://lh3.googleusercontent.com/7eFCdoZZsfb3umEUVwQGSXUsYtrmXZCtyBt4uMBecGAvh3vpWB7n6dLN_34KT9VpVnR16Nkf1-k=w640)](https://drive.google.com/file/d/13MuEOfy6uY6LxSLg4L0Xsi2hjx5qnsKt/view)
+[![rocket_basic scenario random agent](https://drive.google.com/file/d/13MuEOfy6uY6LxSLg4L0Xsi2hjx5qnsKt/view)](https://drive.google.com/file/d/13MuEOfy6uY6LxSLg4L0Xsi2hjx5qnsKt/view)
 
 (Pauses during the video are due to the episode resetting after the agent fails to shoot the monster within 300 time steps.)
 
 ### agent trained for 30 epochs playing the rocket_basic scenario for 20 episodes
 
-[![rocket_basic scenario trained agent](https://lh3.googleusercontent.com/yPYoq_RdbWhiN3A682iMt9l4AZyYwFC8BMC30rtPfl7xenAFSeyDlNEuFgP2T8B12mCrOWMIfs8=w640)](https://drive.google.com/file/d/1nbnPwtomrITlh-QdSXCPA6S85RlOlVzW/view)
+[![rocket_basic scenario trained agent](https://lh5.googleusercontent.com/1NJjbmGMEyQDLq2YA9DjH-nqep4jXbztvgPlnv4OkV7K2xbBfPcmsdXzxnD5hrUcsK8mmIKqbdnDMioIm3QA=w853-h480-n-k-rw)](https://drive.google.com/file/d/1nbnPwtomrITlh-QdSXCPA6S85RlOlVzW/view)
