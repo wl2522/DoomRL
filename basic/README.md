@@ -1,4 +1,4 @@
-# Basic Scenario
+﻿# Basic Scenario
 
 In this scenario, the agent appears in the middle of one side of a room with a pistol while a monster randomly appears somewhere along the wall on the other side of the room. The agent can perform the following actions:
 
@@ -44,10 +44,10 @@ During the first 20% of the training epochs, the agent explores the environment 
 
 ### agent with no training playing the basic scenario for 20 episodes
 
-[![basic scenario random agent](https://lh5.googleusercontent.com/Rv2DtdLZaS1fjcqhBgW95nnp8ruvBETi82whQ7I0ROJJOnT9p5Gn_A3I_H0JJq8hw6--nKknFefefDlWkfJE=w853-h480-n-k-rw)](https://drive.google.com/file/d/1ZqdB9cqy-GbpPF-OY1Cmp6w_hVogZK_p/view)
+[![basic scenario random agent](https://i.imgur.com/U5VbnXn.jpg)](https://drive.google.com/file/d/1ZqdB9cqy-GbpPF-OY1Cmp6w_hVogZK_p/view)
 
 (Pauses during the video are due to the episode resetting after the agent fails to shoot the monster within 300 time steps.)
 
 ### agent trained for 30 epochs playing the basic scenario for 20 episodes
 
-[![basic scenario trained agent](https://lh6.googleusercontent.com/5EFiIQeLjokHr_jJEZcd-JhqavBYUDftu0oC91JzKZw5gTNk5XdNDboKUKlcj7wKGu7Nnrez1Izb9uYfPNWV=w853-h480-n-k-rw)](https://drive.google.com/file/d/1azoMIdvmOAPBHoQTkVoNA8DRWw9iOCsm/view)
+[![basic scenario trained agent](https://i.imgur.com/zfFYoHx.jpg)](https://drive.google.com/file/d/1azoMIdvmOAPBHoQTkVoNA8DRWw9iOCsm/view)

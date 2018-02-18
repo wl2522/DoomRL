@@ -1,4 +1,4 @@
-# Rocket Basic Scenario
+﻿# Rocket Basic Scenario
 
 In this scenario, the agent appears in the middle of one side of a room with a rocket launcher while a monster randomly appears somewhere along the wall on the other side of the room. The agent can perform the following actions:
 
@@ -44,10 +44,10 @@ During the first 20% of the training epochs, the agent explores the environment 
 
 ### agent with no training playing the rocket_basic scenario for 20 episodes
 
-[![rocket_basic scenario random agent](https://drive.google.com/file/d/13MuEOfy6uY6LxSLg4L0Xsi2hjx5qnsKt/view)](https://drive.google.com/file/d/13MuEOfy6uY6LxSLg4L0Xsi2hjx5qnsKt/view)
+[![rocket_basic scenario random agent](https://i.imgur.com/BvL6yn1.jpg)](https://drive.google.com/file/d/13MuEOfy6uY6LxSLg4L0Xsi2hjx5qnsKt/view)
 
 (Pauses during the video are due to the episode resetting after the agent fails to shoot the monster within 300 time steps.)
 
 ### agent trained for 30 epochs playing the rocket_basic scenario for 20 episodes
 
-[![rocket_basic scenario trained agent](https://lh5.googleusercontent.com/1NJjbmGMEyQDLq2YA9DjH-nqep4jXbztvgPlnv4OkV7K2xbBfPcmsdXzxnD5hrUcsK8mmIKqbdnDMioIm3QA=w853-h480-n-k-rw)](https://drive.google.com/file/d/1nbnPwtomrITlh-QdSXCPA6S85RlOlVzW/view)
+[![rocket_basic scenario trained agent](https://i.imgur.com/RvAVGfs.jpg)](https://drive.google.com/file/d/1nbnPwtomrITlh-QdSXCPA6S85RlOlVzW/view)
