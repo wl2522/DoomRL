@@ -28,7 +28,7 @@ game = vd.DoomGame()
 game.set_screen_format(vd.ScreenFormat.BGR24)
 game.set_depth_buffer_enabled(False)
 game.set_screen_resolution(vd.ScreenResolution.RES_640X480)
-game.set_mode(vd.Mode.SPECTATOR)
+game.set_mode(vd.Mode.PLAYER)
 game.load_config('./take_cover/take_cover.cfg')
 
 available_actions = game.get_available_buttons()
@@ -64,7 +64,7 @@ for i in range(episodes):
         # Makes a random action and get remember reward.
         action = np.random.randint(num_actions)
         r = game.make_action(actions[action])
-
+        time.sleep(0.02)
         # Makes a "prolonged" action and skip frames:
         # skiprate = 4
         # r = game.make_acti,on(choice(actions), skiprate)
