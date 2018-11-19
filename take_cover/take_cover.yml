@@ -1,0 +1,16 @@
+---
+down_sample_ratio: 0.125
+frame_delay: 12
+buffer_size: 25000
+epochs: 2000
+steps_per_epoch: 2000
+learning_rate: 0.0025
+gamma: 0
+start_epsilon: 1.0
+end_epsilon: 0.1
+batch_size: 100
+load_model: False
+save_model: True
+model_dir: './checkpoints/take_cover.ckpt'
+num_ckpts: 40
+...
