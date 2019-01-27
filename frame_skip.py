@@ -2,6 +2,7 @@ from collections import deque
 
 buffer = list()
 queue = deque()
+experience = deque()
 
 # Push four empty lists into the stack to start the frame-skipping algorithm
 for i in range(4):
@@ -19,11 +20,19 @@ for frame in range(64):
             queue[i].append(frame//4)
 
 
-        phi = queue.popleft()
-        # Begin adding stacks to the buffer once there are 4 in the oldest one
-        if len(phi) == 4:
-            buffer.append(phi)
-        # Replace the stack we just popped with a new one
+        state1 = queue.popleft()
+        # Begin adding states to the buffer once there are 4 frames in the oldest one
+        if len(state1) == 4:
+            experience.append(state1)
+
+        # Add experiences  to the buffer as pairs of consecutive states
+
+        if len(experience) == 2:
+            buffer.append((experience[0], experience[1]))
+            # Pop the first state in the queue to make room for the next state
+            experience.popleft()
+
+        # Replace the state we just popped with a new one
         queue.append(list())
 
 print(buffer)
