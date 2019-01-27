@@ -24,14 +24,15 @@ allows us to pop the oldest state from the queue.
 from collections import deque
 
 buffer = list()
-queue = deque()
-experience = deque()
+queue = deque(maxlen=4)
+experience = deque(maxlen=2)
 
-# Push four empty lists into the stack to start the frame-skipping algorithm
-for i in range(4):
-    queue.append(list())
+# Initialize the frame-skipping algorithm with a queue of 4 empty states
+queue = deque([list() for i in range(4)])
 
 for frame in range(64):
+    print('queue:', queue)
+
     # Process only every 4th frame
     if (frame + 1) % 4 == 0:
         for i in range(4):
@@ -45,7 +46,6 @@ for frame in range(64):
 
         print('frame:', frame + 1)
         print('experience queue:', experience)
-        print('queue:', queue)
 
         # Add experiences  to the buffer as pairs of consecutive states
         if len(experience) == 2:
