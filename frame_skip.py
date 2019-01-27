@@ -1,3 +1,22 @@
+"""This is an example script showing the frame skipping algorithm that's used
+to add game states to the memory buffer during training. Integers are used to
+represent consecutive frames.
+
+The purpose of the algorithm is collect pairs of game states, with each state
+consisting of 4 frames.
+
+In particular, the algorithm only stores every 4th frame while ignoring
+the rest. Most importantly, there are overlapping frames within each pair of
+consecutive states:
+
+    state1 = (1, 4, 8, 16)
+    state2 = (4, 8, 16, 20)
+
+    state2 = (4, 8, 16, 20)
+    state3 = (8, 16, 20, 24)
+
+"""
+
 from collections import deque
 
 buffer = list()
@@ -19,9 +38,9 @@ for frame in range(64):
         for i in range(4):
             queue[i].append(frame//4)
 
-
         state1 = queue.popleft()
-        # Begin adding states to the buffer once there are 4 frames in the oldest one
+
+        # Add states to the buffer once there are 4 frames in the oldest one
         if len(state1) == 4:
             experience.append(state1)
 
