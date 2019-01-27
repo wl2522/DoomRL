@@ -44,7 +44,8 @@ for frame in range(64):
             experience.append(state1)
 
         # Add experiences  to the buffer as pairs of consecutive states
-
+        print('frame:', frame + 1)
+        print('experience queue', experience)
         if len(experience) == 2:
             buffer.append((experience[0], experience[1]))
             # Pop the first state in the queue to make room for the next state
