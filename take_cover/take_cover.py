@@ -40,6 +40,8 @@ channels = game.get_screen_channels() + int(game.is_depth_buffer_enabled())
 
 # Specify the available actions in the scenario
 actions = game.get_available_buttons()
+
+# Create a list of one hot encoded lists to represent each possible action
 actions = [list(ohe) for ohe in list(np.identity(len(actions)))]
 
 # Define the Q-network learning parameters
@@ -51,7 +53,7 @@ phase1_len = config['phase1_ratio']*epochs
 phase2_len = config['phase2_ratio']*epochs
 
 steps_per_epoch = config['steps_per_epoch']
-learning_rate = learning_rate = config['learning_rate']
+learning_rate =  config['learning_rate']
 gamma = config['gamma']
 start_epsilon = config['start_epsilon']
 end_epsilon = config['end_epsilon']
