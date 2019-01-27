@@ -37,15 +37,17 @@ for frame in range(64):
         for i in range(4):
             queue[i].append(frame//4)
 
-        state1 = queue.popleft()
+        state = queue.popleft()
 
         # Add states to the buffer once there are 4 frames in the oldest one
-        if len(state1) == 4:
-            experience.append(state1)
+        if len(state) == 4:
+            experience.append(state)
+
+        print('frame:', frame + 1)
+        print('experience queue:', experience)
+        print('queue:', queue)
 
         # Add experiences  to the buffer as pairs of consecutive states
-        print('frame:', frame + 1)
-        print('experience queue', experience)
         if len(experience) == 2:
             buffer.append((experience[0], experience[1]))
             # Pop the first state in the queue to make room for the next state
