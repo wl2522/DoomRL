@@ -31,14 +31,9 @@ experience = deque()
 for i in range(4):
     queue.append(list())
 
-# Use a counter to keep track of how many frames have been proccessed
-counter = 0
-
 for frame in range(64):
-    # Increment the counter first so that we can check for divisibility by 4
-    counter += 1
     # Process only every 4th frame
-    if counter % 4 == 0:
+    if (frame + 1) % 4 == 0:
         for i in range(4):
             queue[i].append(frame//4)
 
