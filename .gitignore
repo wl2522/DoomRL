@@ -5,3 +5,5 @@
 *.ini
 /unfinished/*
 */checkpoints/*
+__pycache__/*
+*.jpg
