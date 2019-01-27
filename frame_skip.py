@@ -15,6 +15,10 @@ consecutive states:
     state2 = (4, 8, 16, 20)
     state3 = (8, 16, 20, 24)
 
+We use deques to store these states before they're added to the memory buffer
+since they allow elements to be popped from either end of the queue, which
+allows us to pop the oldest state from the queue.
+
 """
 
 from collections import deque
