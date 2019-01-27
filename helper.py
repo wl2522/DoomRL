@@ -1,4 +1,6 @@
+import time
 import numpy as np
+import tensorflow as tf
 from skimage.transform import rescale
 
 def preprocess(image, down_sample_ratio=1):
@@ -17,7 +19,8 @@ def preprocess(image, down_sample_ratio=1):
 
 #Test the agent using a currently training or previously trained model
 
-def test_agent(model, num_episodes, load_model, depth, training=True, session=None, model_dir=None):
+def test_agent(game, model, num_episodes, load_model, depth,
+               training=True, session=None, model_dir=None):
     if load_model == True:
         sess = tf.Session()
         print('Loading model from', model_dir)
