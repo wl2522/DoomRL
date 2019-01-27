@@ -1,3 +1,13 @@
+"""For each time step, collect the following data:
+    1. The current game state
+    2. The action that was taken taken
+    3. The reward obtained from the chosen action
+    4. The next game state
+        (store the first game state if the previous action ends the episode)
+    5. A variable indicating whether the episode is over yet
+
+"""
+
 import yaml
 import tensorflow as tf
 import numpy as np
