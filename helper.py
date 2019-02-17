@@ -20,14 +20,11 @@ def preprocess(image, down_sample_ratio=1):
     return image
 
 
-def start_game(screen_format, screen_res, enable_depth, config, down_ratio,
-               load_model=False, save_model=True):
+def start_game(screen_format, screen_res, config, enable_depth=False):
     """Start an instance of a game of Doom.
 
     This function will create a new instance of DoomGame and set
     the paramaters of the game.
-
-
     """
     game = vd.DoomGame()
     game.set_screen_format(screen_format)
@@ -35,6 +32,13 @@ def start_game(screen_format, screen_res, enable_depth, config, down_ratio,
     game.set_depth_buffer_enabled(enable_depth)
     game.load_config(config)
 
+    return game
+
+
+def get_game_params(game, down_ratio):
+    """
+    Get additional game parameters from an instance of a game of Doom.
+    """
     width = int(game.get_screen_width()*down_ratio)
     height = int(game.get_screen_height()*down_ratio)
 
@@ -47,7 +51,7 @@ def start_game(screen_format, screen_res, enable_depth, config, down_ratio,
     # Create a list of one hot encoded lists to represent each possible action
     actions = [list(ohe) for ohe in list(np.identity(len(actions)))]
 
-    return game, width, height, channels, actions
+    return width, height, channels, actions
 
 
 # Test the agent using a currently training or previously trained model
