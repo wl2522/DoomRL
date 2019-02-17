@@ -1,3 +1,8 @@
+"""
+This module contains helper functions that instantiate new game
+instances, downscale game images, and test trained models.
+"""
+
 import time
 import numpy as np
 import tensorflow as tf
