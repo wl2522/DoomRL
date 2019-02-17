@@ -20,11 +20,11 @@ config_file = 'take_cover/take_cover.cfg'
 save_images = True
 
 # Specify the game scenario and the screen format/resolution
-game, _, _, _, actions = start_game(screen_format=vd.ScreenFormat.BGR24,
-                              screen_res=vd.ScreenResolution.RES_640X480,
-                              enable_depth=False,
-                              config='take_cover/take_cover.cfg',
-                              down_ratio=down_sample_ratio)
+game = start_game(screen_format=vd.ScreenFormat.BGR24,
+                  screen_res=vd.ScreenResolution.RES_640X480,
+                  config=config_file)
+
+width, height, channels, actions = get_game_params(game, down_sample_ratio)
 
 buffer = list()
 
