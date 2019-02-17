@@ -31,11 +31,11 @@ buffer = list()
 game.init()
 
 for step in range(16):
-    queue = deque(maxlen=4)
     experience = deque(maxlen=2)
 
     # Initialize the frame-skipping algorithm with a queue of 4 empty states
-    queue = deque([list() for i in range(4)])
+    queue = deque([list() for i in range(4)], maxlen=4)
+
     # Use a counter to keep track of how many frames have been proccessed
     counter = 0
 
