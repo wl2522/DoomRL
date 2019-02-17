@@ -5,13 +5,13 @@ during an actual game instance of Doom.
 
 Adapted from: https://github.com/mwydmuch/ViZDoom/issues/296
 """
-
 import time
 import numpy as np
 import vizdoom as vd
 from collections import deque
-from helper import start_game, preprocess
 from imageio import imwrite
+from helper import start_game, get_game_params
+
 
 down_sample_ratio = 0.125
 
@@ -44,16 +44,13 @@ for step in range(16):
 
             if not game.is_depth_buffer_enabled():
                 state1_buffer = np.moveaxis(state.screen_buffer, 0, 2)
-
             else:
                 depth_buffer = np.expand_dims(state.depth_buffer, 0)
                 state1_buffer = np.stack((state.screen_buffer,
                                           depth_buffer), axis=-1)
 
-            state1 = preprocess(state1_buffer, down_sample_ratio)
-
             for i in range(4):
-                queue[i].append(state1//4)
+                queue[i].append(state1_buffer//4)
 
             reward = game.make_action(actions[np.random.randint(len(actions))],
                                       12)
