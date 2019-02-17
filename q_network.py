@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 class QNetwork:
     """Create a Q-network to estimate values and choose actions
     for a given state.
@@ -10,20 +11,20 @@ class QNetwork:
         self.s_t = tf.placeholder(tf.float32,
                                   shape=[None, height, width, channels],
                                   name=network_name + '_state'
-                                 )
+                                  )
         self.a_t = tf.placeholder(tf.int32,
                                   shape=[None],
                                   name=network_name + '_action'
-                                 )
+                                  )
         self.Q_target = tf.placeholder(tf.float32,
                                        shape=[None, num_actions],
                                        name=network_name + '_Q_target'
-                                      )
+                                       )
 
         self.input_layer = tf.reshape(self.s_t,
                                       [-1, height, width, channels],
                                       name=network_name + '_input_layer'
-                                     )
+                                      )
         self.conv1 = tf.layers.conv2d(inputs=self.input_layer,
                                       filters=32,
                                       kernel_size=[8, 8],
@@ -31,7 +32,7 @@ class QNetwork:
                                       padding='valid',
                                       activation=tf.nn.relu,
                                       name=network_name + '_conv1_layer'
-                                     )
+                                      )
         self.conv2 = tf.layers.conv2d(inputs=self.conv1,
                                       filters=64,
                                       kernel_size=[4, 4],
@@ -39,27 +40,27 @@ class QNetwork:
                                       padding='valid',
                                       activation=tf.nn.relu,
                                       name=network_name + '_conv2_layer'
-                                     )
+                                      )
         self.flatten = tf.layers.flatten(self.conv2,
                                          name=network_name + '_flatten'
-                                        )
+                                         )
         self.dense = tf.layers.dense(inputs=self.flatten,
                                      units=256,
                                      activation=tf.nn.relu,
                                      name=network_name + '_dense1_layer'
-                                    )
+                                     )
         self.Q_values = tf.layers.dense(inputs=self.dense,
                                         units=num_actions,
                                         activation=None,
                                         name=network_name + '_output_layer'
-                                       )
+                                        )
 
         self.best_action = tf.argmax(self.Q_values, 1)
         self.loss = tf.losses.mean_squared_error(self.Q_values,
                                                  self.Q_target)
         self.adam = tf.train.AdamOptimizer(learning_rate=self.learning_rate,
                                            name=network_name + '_adam'
-                                          )
+                                           )
         self.train = self.adam.minimize(self.loss)
 
     def update_lr(self):

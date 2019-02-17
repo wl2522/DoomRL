@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Buffer:
     """Create a buffer object that holds a set of training experiences
     as state-action-reward tuples.
