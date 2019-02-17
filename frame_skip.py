@@ -1,4 +1,5 @@
-"""This is an example script showing the frame skipping algorithm that's used
+"""
+This is an example script showing the frame skipping algorithm that's used
 to add game states to the memory buffer during training. Integers are used to
 represent consecutive frames.
 
@@ -18,6 +19,10 @@ consecutive states:
 We use deques to store these states before they're added to the memory buffer
 since they allow elements to be popped from either end of the queue, which
 allows us to pop the oldest state from the queue.
+
+Adapted from:
+https://danieltakeshi.github.io/2016/11/25/ \
+frame-skipping-and-preprocessing-for-deep-q-networks-on-atari-2600-games/
 
 """
 

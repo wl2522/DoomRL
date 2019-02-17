@@ -1,3 +1,12 @@
+"""
+This script adapts the frame skipping algorithm demonstrated
+in frame_skip.py and uses it on image frames obtained
+during an actual game instance of Doom.
+
+Adapted from: https://github.com/mwydmuch/ViZDoom/issues/296
+"""
+
+import time
 import numpy as np
 import vizdoom as vd
 from collections import deque
