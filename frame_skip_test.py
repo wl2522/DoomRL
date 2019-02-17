@@ -23,7 +23,6 @@ save_images = True
 game = start_game(screen_format=vd.ScreenFormat.BGR24,
                   screen_res=vd.ScreenResolution.RES_640X480,
                   config=config_file)
-
 width, height, channels, actions = get_game_params(game, down_sample_ratio)
 
 buffer = list()
@@ -40,7 +39,7 @@ for step in range(16):
     counter = 0
 
     while not game.is_episode_finished():
-        # Increment the counter first so that we can check for divisibility by 4
+        # Increment the counter first because we check for divisibility by 4
         counter += 1
         # Process only every 4th frame
         if counter % 4 == 0:
@@ -63,7 +62,7 @@ for step in range(16):
 
             phi = queue.popleft()
 
-            # Add states to the buffer once there are 4 frames in the oldest one
+            # Ignores the first states that don't contain 4 frames
             if len(phi) == 4:
                 experience.append((counter//4, phi))
 
@@ -75,7 +74,7 @@ for step in range(16):
                                experience[1],
                                done))
 
-                # Pop the first state in the queue to make room for the next state
+                # Pop the oldest state to make room for the next one
                 experience.popleft()
 
             # Replace the state we just popped with a new one
