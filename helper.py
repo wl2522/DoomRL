@@ -25,7 +25,7 @@ def preprocess(image, down_sample_ratio=1):
     return image
 
 
-def start_game(screen_format, screen_res, config, enable_depth=False):
+def start_game(screen_format, screen_res, config, depth=False, sound=False):
     """Start an instance of a game of Doom.
 
     This function will create a new instance of DoomGame and set
@@ -34,8 +34,9 @@ def start_game(screen_format, screen_res, config, enable_depth=False):
     game = vd.DoomGame()
     game.set_screen_format(screen_format)
     game.set_screen_resolution(screen_res)
-    game.set_depth_buffer_enabled(enable_depth)
+    game.set_depth_buffer_enabled(depth)
     game.load_config(config)
+    game.set_sound_enabled(sound)
 
     return game
 
