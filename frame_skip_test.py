@@ -13,7 +13,7 @@ from imageio import imwrite
 from helper import start_game, get_game_params
 
 
-down_sample_ratio = 0.125
+downscale_ratio = 0.125
 config_file = 'take_cover/take_cover.cfg'
 
 # Save images in the buffer at the end of the script to confirm correct results
@@ -23,7 +23,7 @@ save_images = True
 game = start_game(screen_format=vd.ScreenFormat.BGR24,
                   screen_res=vd.ScreenResolution.RES_640X480,
                   config=config_file)
-width, height, channels, actions = get_game_params(game, down_sample_ratio)
+width, height, channels, actions = get_game_params(game, downscale_ratio)
 
 buffer = list()
 

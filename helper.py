@@ -10,14 +10,14 @@ import vizdoom as vd
 from skimage.transform import rescale
 
 
-def preprocess(image, down_sample_ratio=1):
+def preprocess(image, downscale_ratio=1):
     """Downsample and normalize an image array representing
     the game state at a given time stamp.
     """
-    if float(down_sample_ratio) != 1.0:
+    if float(downscale_ratio) != 1.0:
         image = rescale(image=image,
-                        scale=(down_sample_ratio,
-                               down_sample_ratio),
+                        scale=(downscale_ratio,
+                               downscale_ratio),
                         mode='reflect')
     image = image.astype(np.float32)
     image = np.expand_dims(image, axis=0)
@@ -41,12 +41,12 @@ def start_game(screen_format, screen_res, config, depth=False, sound=False):
     return game
 
 
-def get_game_params(game, down_ratio):
+def get_game_params(game, downscale_ratio):
     """
     Get additional game parameters from an instance of a game of Doom.
     """
-    width = int(game.get_screen_width()*down_ratio)
-    height = int(game.get_screen_height()*down_ratio)
+    width = int(game.get_screen_width()*downscale_ratio)
+    height = int(game.get_screen_height()*downscale_ratio)
 
     # Add an extra channel to accomodate the depth buffer if it's enabled
     channels = game.get_screen_channels() + int(game.is_depth_buffer_enabled())
@@ -62,8 +62,8 @@ def get_game_params(game, down_ratio):
 
 # Test the agent using a currently training or previously trained model
 
-def test_agent(game, model, num_episodes, load_model, depth,
-               training=True, session=None, model_dir=None):
+def test_agent(game, model, num_episodes, load_model, depth, downscale_ratio,
+               session=None, model_dir=None):
     if load_model is True:
         sess = tf.Session()
         print('Loading model from', model_dir)
@@ -93,7 +93,7 @@ def test_agent(game, model, num_episodes, load_model, depth,
                 state_buffer = np.stack((state.screen_buffer,
                                          depth_buffer), axis=-1)
 
-            state1 = preprocess(state_buffer, down_sample_ratio)
+            state1 = preprocess(state_buffer, downscale_ratio)
             action = model.choose_action(sess, state1)[0]
             reward = game.make_action(actions[action])
 
