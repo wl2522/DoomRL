@@ -4,6 +4,7 @@ import tensorflow as tf
 import vizdoom as vd
 from skimage.transform import rescale
 
+
 def preprocess(image, down_sample_ratio=1):
     """Downsample and normalize an image array representing
     the game state at a given time stamp.
@@ -49,18 +50,18 @@ def start_game(screen_format, screen_res, enable_depth, config, down_ratio,
     return game, width, height, channels, actions
 
 
-#Test the agent using a currently training or previously trained model
+# Test the agent using a currently training or previously trained model
 
 def test_agent(game, model, num_episodes, load_model, depth,
                training=True, session=None, model_dir=None):
-    if load_model == True:
+    if load_model is True:
         sess = tf.Session()
         print('Loading model from', model_dir)
         tf.train.Saver().restore(sess, model_dir)
 
-#Require an existing session if a pretrained model isn't provided
+# Require an existing session if a pretrained model isn't provided
 
-    elif load_model == False:
+    elif load_model is False:
         sess = session
 
     game.set_sound_enabled(False)
@@ -74,10 +75,10 @@ def test_agent(game, model, num_episodes, load_model, depth,
         while not game.is_episode_finished():
             state = game.get_state()
 
-            if depth == False:
+            if depth is False:
                 state_buffer = np.moveaxis(state.screen_buffer, 0, 2)
 
-            elif depth == True:
+            elif depth is True:
                 depth_buffer = state.depth_buffer
                 state_buffer = np.stack((state.screen_buffer,
                                          depth_buffer), axis=-1)
@@ -86,12 +87,13 @@ def test_agent(game, model, num_episodes, load_model, depth,
             action = model.choose_action(sess, state1)[0]
             reward = game.make_action(actions[action])
 
-#Add a delay between each time step so that the episodes occur at normal speed
+# Add a delay between each time step so that the episodes occur at normal speed
 
             time.sleep(0.02)
 
         episode_rewards.append(game.get_total_reward())
-        print('Test Episode {} Reward: {}'.format(i + 1, game.get_total_reward()))
+        print('Test Episode {} Reward: {}'.format(i + 1,
+                                                  game.get_total_reward()))
 
     game.close()
 
