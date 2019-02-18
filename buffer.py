@@ -44,7 +44,7 @@ class Buffer:
             an array of integer variables that indicate if the episode is over
 
         """
-        sample = np.random.randint(self.length, size=sample_size)
+        sample = np.random.choice(self.length, size=sample_size, replace=False)
         s1 = np.concatenate([self.buffer[idx][0] for idx in sample],
                             axis=0)
         a = np.array([self.buffer[idx][1] for idx in sample])
