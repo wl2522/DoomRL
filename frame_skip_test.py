@@ -102,12 +102,12 @@ def main(num_steps, config_file, downscale_ratio=0.125, save_images=True):
     # Save each image from the buffer in the order they were inserted in
     if save_images:
         for idx, stack in enumerate(buffer):
-            # Read the before and after frames in each game state
+            # Read each time step's before and after game state frames
             for state in (0, 3):
                 for image in range(4):
                     # Scale the image array to 0-255 to increase brightness
                     frame = np.squeeze(stack[state][1][image])*4
-                    # Label each state's before frame as 0 and after frame as 1
+                    # Label each frame to indicate their relative orders
                     order = int(state == 3)
                     imwrite('{}_{}_{}.jpg'.format(idx, order, image),
                             frame)
