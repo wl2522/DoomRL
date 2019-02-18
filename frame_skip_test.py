@@ -40,7 +40,7 @@ def training_iter(game, actions, buffer):
                                           depth_buffer), axis=-1)
 
             for i in range(4):
-                queue[i].append(state1_buffer//4)
+                queue[i].append(state1_buffer)
 
             action = np.random.randint(len(actions))
             print(counter, action)
@@ -105,8 +105,7 @@ def main(num_steps, config_file, downscale_ratio=0.125, save_images=True):
             # Read each time step's before and after game state frames
             for state in (0, 3):
                 for image in range(4):
-                    # Scale the image array to 0-255 to increase brightness
-                    frame = np.squeeze(stack[state][1][image])*4
+                    frame = np.squeeze(stack[state][1][image])
                     # Label each frame to indicate their relative orders
                     order = int(state == 3)
                     imwrite('{}_{}_{}.jpg'.format(idx, order, image),
