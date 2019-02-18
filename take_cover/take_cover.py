@@ -122,11 +122,20 @@ for epoch in range(epochs):
                 state1 = preprocess(state1_buffer, config['downscale_ratio'])
 
                 for i in range(4):
-                    queue[i].append(state1//4)
+                    queue[i].append(state1_buffer)
+
+                # Pop and concatenate the oldest stack of frames
+                phi = queue.popleft()
+                phi = np.concatenate(phi)
+
+                # Add an extra dimension to concatenate the stacks of frames
+                phi = np.expand_dims(phi, axis=0)
 
                 # Explore the environment by choosing random actions
                 # with 100% probability for the first phase of training
-                if epoch < phase1_len:
+                # (also choose a random action if there are less
+                # than 4 frames in the current state)
+                if epoch < phase1_len or phi.shape[1] < 4:
                     action = np.random.randint(len(actions))
 
                 # Increase the probability of greedily choosing an action by a
@@ -137,7 +146,7 @@ for epoch in range(epochs):
                     if np.random.uniform(0, 1) <= epsilon:
                         action = np.random.randint(len(actions))
                     else:
-                        action = DQN.choose_action(session, state1)[0]
+                        action = DQN.choose_action(session, phi)[0]
 
                 # Select a random action with 10% probability in
                 # the final phase of training
@@ -145,33 +154,37 @@ for epoch in range(epochs):
                     if np.random.uniform(0, 1) <= end_epsilon:
                         action = np.random.randint(len(actions))
                     else:
-                        action = DQN.choose_action(session, state1)[0]
+                        action = DQN.choose_action(session, phi)[0]
 
                 reward = game.make_action(actions[action], frame_delay)
                 done = game.is_episode_finished()
 
-                if not done:
-                    state = game.get_state()
+                # Ignores the first states that don't contain 4 frames
+                if phi.shape[1] == 4:
+                    experience.append(phi)
 
-                    if not game.is_depth_buffer_enabled():
-                        state2_buffer = np.moveaxis(state.screen_buffer, 0, 2)
-                    else:
-                        depth_buffer = state.depth_buffer
-                        state2_buffer = np.stack((state.screen_buffer,
-                                                  depth_buffer), axis=-1)
+                # Add experiences to the buffer as pairs of consecutive states
+                if len(experience) == 2:
+                    exp_buffer.add_experience((experience[0],
+                                               action,
+                                               reward,
+                                               experience[1],
+                                               done))
 
-                    state2 = preprocess(state2_buffer,
-                                        config['downscale_ratio'])
+                    # Pop the oldest state to make room for the next one
+                    experience.popleft()
 
-                elif done:
-                    state2 = state1
+                # Replace the state we just popped with a new one
+                queue.append(list())
 
-                # Add the experience obtained from each time step to the buffer
-                exp_buffer.add_experience((state1,
-                                           action,
-                                           reward,
-                                           state2,
-                                           done))
+                # Reuse the previous state if the episode has finished
+                if done:
+                    experience.append(phi)
+                    exp_buffer.add_experience((experience[0],
+                                               action,
+                                               reward,
+                                               experience[0],
+                                               done))
 
         # Sample a minibatch from the buffer
         # (if there are enough experiences that have been saved already)

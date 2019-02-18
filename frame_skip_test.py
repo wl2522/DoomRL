@@ -73,7 +73,7 @@ def training_iter(game, actions, buffer):
                 buffer.append((experience[0],
                                action,
                                reward,
-                               experience[1],
+                               experience[0],
                                done))
 
         # Add a delay between each time step to slow down the gameplay
