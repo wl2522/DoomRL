@@ -9,7 +9,7 @@ import vizdoom as vd
 from skimage.transform import rescale
 
 
-def preprocess(image, downscale_ratio=1):
+def preprocess(image, downscale_ratio=1, preserve_range=False):
     """Downsample and normalize an image array representing
     the game state at a given time stamp.
     """
@@ -17,7 +17,10 @@ def preprocess(image, downscale_ratio=1):
         image = rescale(image=image,
                         scale=(downscale_ratio,
                                downscale_ratio),
-                        mode='reflect')
+                        mode='reflect',
+                        multichannel=True,
+                        preserve_range=preserve_range,
+                        anti_aliasing=False)
     image = image.astype(np.float32)
     image = np.expand_dims(image, axis=0)
 
