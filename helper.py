@@ -7,11 +7,13 @@ import numpy as np
 import tensorflow as tf
 import vizdoom as vd
 from skimage.transform import rescale
+from skimage.color import rgb2gray
 
 
 def preprocess(image, downscale_ratio=1, preserve_range=False):
     """Downsample and normalize an image array representing
-    the game state at a given time stamp.
+    the game state at a given time stamp. The final image is
+    converted to grayscale since color is unnecessary for training.
     """
     if float(downscale_ratio) != 1.0:
         image = rescale(image=image,
@@ -21,6 +23,7 @@ def preprocess(image, downscale_ratio=1, preserve_range=False):
                         multichannel=True,
                         preserve_range=preserve_range,
                         anti_aliasing=False)
+    image = rgb2gray(image)
     image = image.astype(np.float32)
 
     # Normalize the image array
