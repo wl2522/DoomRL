@@ -2,7 +2,6 @@
 This module contains helper functions that instantiate new game
 instances, downscale game images, and test trained models.
 """
-
 import time
 import numpy as np
 import tensorflow as tf
@@ -60,22 +59,21 @@ def get_game_params(game, downscale_ratio):
     return width, height, channels, actions
 
 
-# Test the agent using a currently training or previously trained model
-
-def test_agent(game, model, num_episodes, load_model, depth, downscale_ratio,
-               session=None, model_dir=None):
-    if load_model is True:
+def test_agent(game, model, num_episodes, depth, downscale_ratio,
+               session=None, load_model=False, model_dir=None):
+    """Test the agent using a currently training or previously trained model.
+    """
+    if load_model:
         sess = tf.Session()
         print('Loading model from', model_dir)
         tf.train.Saver().restore(sess, model_dir)
 
-# Require an existing session if a pretrained model isn't provided
-
-    elif load_model is False:
+    # Require an existing session if a pretrained model isn't provided
+    elif not load_model:
         sess = session
 
-    game.set_sound_enabled(False)
     episode_rewards = list()
+    _, _, _, actions = get_game_params(game, downscale_ratio)
 
     game.init()
 
@@ -87,7 +85,6 @@ def test_agent(game, model, num_episodes, load_model, depth, downscale_ratio,
 
             if depth is False:
                 state_buffer = np.moveaxis(state.screen_buffer, 0, 2)
-
             elif depth is True:
                 depth_buffer = state.depth_buffer
                 state_buffer = np.stack((state.screen_buffer,
@@ -95,10 +92,9 @@ def test_agent(game, model, num_episodes, load_model, depth, downscale_ratio,
 
             state1 = preprocess(state_buffer, downscale_ratio)
             action = model.choose_action(sess, state1)[0]
-            reward = game.make_action(actions[action])
+            game.make_action(actions[action])
 
-# Add a delay between each time step so that the episodes occur at normal speed
-
+            # Add a delay at each time step so that games occur at normal speed
             time.sleep(0.02)
 
         episode_rewards.append(game.get_total_reward())

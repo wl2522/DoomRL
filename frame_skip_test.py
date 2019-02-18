@@ -6,10 +6,10 @@ during an actual game instance of Doom.
 Adapted from: https://github.com/mwydmuch/ViZDoom/issues/296
 """
 import time
-import numpy as np
-import vizdoom as vd
 from collections import deque
+import numpy as np
 from imageio import imwrite
+import vizdoom as vd
 from helper import start_game, get_game_params
 
 
