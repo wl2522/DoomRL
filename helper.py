@@ -22,6 +22,9 @@ def preprocess(image, downscale_ratio=1, preserve_range=False):
                         preserve_range=preserve_range,
                         anti_aliasing=False)
     image = image.astype(np.float32)
+
+    # Normalize the image array
+    image /= 255.0
     image = np.expand_dims(image, axis=0)
 
     return image
