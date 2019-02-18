@@ -19,7 +19,7 @@ def training_iter(game, actions, buffer):
     """
     experience = deque(maxlen=2)
 
-    # Initialize the frame-skipping algorithm with a queue of 4 empty states
+    # Initialize the queue with 4 empty states
     queue = deque([list() for i in range(4)], maxlen=4)
 
     # Use a counter to keep track of how many frames have been proccessed
@@ -42,9 +42,9 @@ def training_iter(game, actions, buffer):
             for i in range(4):
                 queue[i].append(state1_buffer//4)
 
-            action = actions[np.random.randint(len(actions))]
+            action = np.random.randint(len(actions))
             print(counter, action)
-            reward = game.make_action(action, 4)
+            reward = game.make_action(actions[action], 4)
             done = game.is_episode_finished()
 
             phi = queue.popleft()
