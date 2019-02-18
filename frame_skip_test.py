@@ -13,23 +13,10 @@ from imageio import imwrite
 from helper import start_game, get_game_params
 
 
-downscale_ratio = 0.125
-config_file = 'take_cover/take_cover.cfg'
-
-# Save images in the buffer at the end of the script to confirm correct results
-save_images = True
-
-# Specify the game scenario and the screen format/resolution
-game = start_game(screen_format=vd.ScreenFormat.BGR24,
-                  screen_res=vd.ScreenResolution.RES_640X480,
-                  config=config_file)
-width, height, channels, actions = get_game_params(game, downscale_ratio)
-
-buffer = list()
-
-game.init()
-
-for step in range(16):
+def training_iter(game, actions, buffer):
+    """This function demonstrates the frame skipping algorithm within
+    each time step of a game instance.
+    """
     experience = deque(maxlen=2)
 
     # Initialize the frame-skipping algorithm with a queue of 4 empty states
@@ -92,17 +79,39 @@ for step in range(16):
         # Add a delay between each time step to slow down the gameplay
         time.sleep(0.01)
 
-game.close()
 
-# Save each image from the buffer in the order they were inserted in
-if save_images:
-    for idx, stack in enumerate(buffer):
-        # Read the before and after frames in each game state
-        for state in (0, 3):
-            for image in range(4):
-                # Convert the image array to 0-255 range to increase brightness
-                frame = np.squeeze(stack[state][1][image])*4
-                # Label each state's before frame as 0 and after frame as 1
-                order = int(state == 3)
-                imwrite('{}_{}_{}.jpg'.format(idx, order, image),
-                        frame)
+def main(num_steps, config_file, downscale_ratio=0.125, save_images=True):
+    """Iterate through a game instance and store frames from the game
+    into the buffer according to the frame skipping algorithm.
+    If save_images = True then write images from the buffer to disk
+    at the end of the script to confirm correct results
+    """
+    game = start_game(screen_format=vd.ScreenFormat.BGR24,
+                      screen_res=vd.ScreenResolution.RES_640X480,
+                      config=config_file)
+    _, _, _, actions = get_game_params(game, downscale_ratio)
+    buffer = list()
+
+    game.init()
+
+    for _ in range(num_steps):
+        training_iter(game, actions, buffer)
+
+    game.close()
+
+    # Save each image from the buffer in the order they were inserted in
+    if save_images:
+        for idx, stack in enumerate(buffer):
+            # Read the before and after frames in each game state
+            for state in (0, 3):
+                for image in range(4):
+                    # Scale the image array to 0-255 to increase brightness
+                    frame = np.squeeze(stack[state][1][image])*4
+                    # Label each state's before frame as 0 and after frame as 1
+                    order = int(state == 3)
+                    imwrite('{}_{}_{}.jpg'.format(idx, order, image),
+                            frame)
+
+
+if __name__ == '__main__':
+    main(16, 'take_cover/take_cover.cfg')
