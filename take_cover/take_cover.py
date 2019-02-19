@@ -225,6 +225,7 @@ for epoch in range(epochs):
                                  num_episodes=20,
                                  load_model=False,
                                  downscale_ratio=config['downscale_ratio'],
+                                 delay=config['frame_delay'],
                                  session=session,
                                  model_dir=model_dir)
         print('Epoch {} Average Test Reward: {}'.format(epoch + 1,
