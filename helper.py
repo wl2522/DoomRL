@@ -3,6 +3,7 @@ This module contains helper functions that instantiate new game
 instances, downscale game images, and test trained models.
 """
 import time
+from collections import deque
 import numpy as np
 import tensorflow as tf
 import vizdoom as vd
@@ -72,7 +73,7 @@ def get_game_params(game, downscale_ratio):
     return width, height, actions
 
 
-def test_agent(game, model, num_episodes, downscale_ratio,
+def test_agent(game, model, num_episodes, downscale_ratio, delay,
                session=None, load_model=False, model_dir=None):
     """Test the agent using a currently training or previously trained model.
     """
@@ -86,19 +87,47 @@ def test_agent(game, model, num_episodes, downscale_ratio,
         sess = session
 
     episode_rewards = list()
-    _, _, _, actions = get_game_params(game, downscale_ratio)
+    _, _, actions = get_game_params(game, downscale_ratio)
 
     game.init()
 
-    for i in range(num_episodes):
+    for _ in range(num_episodes):
+        # Initialize the queue with 4 empty states
+        queue = deque([list() for i in range(4)], maxlen=4)
+
+        # Use a counter to keep track of how many frames have been proccessed
+        counter = 0
+
         game.new_episode()
 
         while not game.is_episode_finished():
-            state = game.get_state()
-            state_buffer = state.screen_buffer
-            state1 = preprocess(state_buffer, downscale_ratio)
-            action = model.choose_action(sess, state1)[0]
-            game.make_action(actions[action])
+            # Advance the counter first because we check for divisibility by 4
+            counter += 1
+            # Process only every 4th frame
+            if counter % 4 == 0:
+                state = game.get_state()
+                state_buffer = preprocess(state.screen_buffer, downscale_ratio)
+
+                for i in range(4):
+                    queue[i].append(state_buffer)
+
+                # Pop and concatenate the oldest stack of frames
+                phi = queue.popleft()
+                phi = np.concatenate(phi)
+
+                # Add an extra dimension to concatenate the stacks of frames
+                phi = np.expand_dims(phi, axis=0)
+
+                # Choose a random action if there are less
+                # than 4 frames in the current state
+                if phi.shape[1] < 4:
+                    action = np.random.randint(len(actions))
+                else:
+                    action = model.choose_action(sess, phi)[0]
+                    game.make_action(actions[action], delay)
+
+                # Replace the state we just popped with a new one
+                queue.append(list())
 
             # Add a delay at each time step so that games occur at normal speed
             time.sleep(0.02)
