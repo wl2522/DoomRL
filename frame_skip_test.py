@@ -31,16 +31,10 @@ def training_iter(game, actions, buffer):
         # Process only every 4th frame
         if counter % 4 == 0:
             state = game.get_state()
-
-            if not game.is_depth_buffer_enabled():
-                state1_buffer = np.moveaxis(state.screen_buffer, 0, 2)
-            else:
-                depth_buffer = np.expand_dims(state.depth_buffer, 0)
-                state1_buffer = np.stack((state.screen_buffer,
-                                          depth_buffer), axis=-1)
+            state_buffer = np.moveaxis(state.screen_buffer, 0, 2)
 
             for i in range(4):
-                queue[i].append(state1_buffer)
+                queue[i].append(state_buffer)
 
             action = np.random.randint(len(actions))
             print(counter, action)
@@ -89,7 +83,7 @@ def main(num_steps, config_file, downscale_ratio=0.125, save_images=True):
     game = start_game(screen_format=vd.ScreenFormat.BGR24,
                       screen_res=vd.ScreenResolution.RES_640X480,
                       config=config_file)
-    _, _, _, actions = get_game_params(game, downscale_ratio)
+    _, _, actions = get_game_params(game, downscale_ratio)
     buffer = list()
 
     game.init()

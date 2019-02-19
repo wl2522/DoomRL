@@ -30,11 +30,10 @@ with open('take_cover/take_cover.yml') as config_file:
 game = start_game(screen_format=vd.ScreenFormat.BGR24,
                   screen_res=vd.ScreenResolution.RES_640X480,
                   config='take_cover/take_cover.cfg',
-                  depth=config['enable_depth_buffer'],
                   sound=config['enable_sound'])
 
-width, height, channels, actions = get_game_params(game,
-                                                   config['downscale_ratio'])
+width, height, actions = get_game_params(game,
+                                         config['downscale_ratio'])
 
 # Define the Q-network learning parameters
 frame_delay = config['frame_delay']
@@ -62,13 +61,11 @@ target_net = QNetwork(network_name='target',
                       learning_rate=learning_rate,
                       height=height,
                       width=width,
-                      channels=channels,
                       num_actions=len(actions))
 DQN = QNetwork(network_name='online',
                learning_rate=learning_rate,
                height=height,
                width=width,
-               channels=channels,
                num_actions=len(actions))
 
 exp_buffer = Buffer(size=buffer_size)
@@ -111,15 +108,8 @@ for epoch in range(epochs):
             # Process only every 4th frame
             if counter % 4 == 0:
                 state = game.get_state()
-
-                if not game.is_depth_buffer_enabled():
-                    state1_buffer = np.moveaxis(state.screen_buffer, 0, 2)
-                else:
-                    depth_buffer = np.expand_dims(state.depth_buffer, 0)
-                    state1_buffer = np.stack((state.screen_buffer,
-                                              depth_buffer), axis=-1)
-
-                state1 = preprocess(state1_buffer, config['downscale_ratio'])
+                state1_buffer = preprocess(state.screen_buffer,
+                                           config['downscale_ratio'])
 
                 for i in range(4):
                     queue[i].append(state1_buffer)
@@ -234,7 +224,7 @@ for epoch in range(epochs):
                                  DQN,
                                  num_episodes=20,
                                  load_model=False,
-                                 depth=False,
+                                 downscale_ratio=config['downscale_ratio'],
                                  session=session,
                                  model_dir=model_dir)
         print('Epoch {} Average Test Reward: {}'.format(epoch + 1,

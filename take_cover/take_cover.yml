@@ -1,6 +1,5 @@
 ---
-down_sample_ratio: 0.125
-enable_depth_buffer: False
+downscale_ratio: 0.125
 enable_sound: False
 frame_delay: 4
 buffer_size: 25000

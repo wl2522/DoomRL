@@ -5,11 +5,11 @@ class QNetwork:
     """Create a Q-network to estimate values and choose actions
     for a given state.
     """
-    def __init__(self, network_name, height, width, channels, num_actions,
+    def __init__(self, network_name, height, width, num_actions,
                  learning_rate=0.001):
         self.learning_rate = learning_rate
         self.s_t = tf.placeholder(tf.float32,
-                                  shape=[None, height, width, channels],
+                                  shape=[None, 4, height, width],
                                   name=network_name + '_state'
                                   )
         self.a_t = tf.placeholder(tf.int32,
@@ -20,12 +20,7 @@ class QNetwork:
                                        shape=[None, num_actions],
                                        name=network_name + '_Q_target'
                                        )
-
-        self.input_layer = tf.reshape(self.s_t,
-                                      [-1, height, width, channels],
-                                      name=network_name + '_input_layer'
-                                      )
-        self.conv1 = tf.layers.conv2d(inputs=self.input_layer,
+        self.conv1 = tf.layers.conv2d(inputs=self.s_t,
                                       filters=32,
                                       kernel_size=[8, 8],
                                       strides=[4, 4],
