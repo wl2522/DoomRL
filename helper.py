@@ -24,7 +24,7 @@ def preprocess(image, downscale_ratio=1, preserve_range=False):
         image = rescale(image=image,
                         scale=downscale_ratio,
                         mode='reflect',
-                        multichannel=True,
+                        multichannel=False,
                         preserve_range=preserve_range,
                         anti_aliasing=False)
 
