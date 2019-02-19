@@ -11,9 +11,16 @@ from skimage.color import rgb2gray
 
 
 def preprocess(image, downscale_ratio=1, preserve_range=False):
-    """Downsample and normalize an image array representing
-    the game state at a given time stamp. The final image is
-    converted to grayscale since color is unnecessary for training.
+    """Downsample and preprocess an image array representing
+    the game state at a given time stamp. The preprocessing steps are:
+        1. Move the color channel dimension to the end position as is
+        required by the rescale() function in scikit-image
+        2. Add an extra dimension at the front position to stack
+        frames on
+        3. Convert the image to grayscale (remove the color dimension)
+        since color adds unnecessary dimensions (and extra complexity)
+        to the model training process
+        4. Normalize the image array so that each value is between 0 and 1
     """
     #
     image = np.moveaxis(image, 0, 2)
