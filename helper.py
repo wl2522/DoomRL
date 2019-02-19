@@ -9,6 +9,7 @@ import tensorflow as tf
 import vizdoom as vd
 from skimage.transform import rescale
 from skimage.color import rgb2gray
+from tqdm import trange
 
 
 def preprocess(image, downscale_ratio=1, preserve_range=False):
@@ -91,7 +92,7 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
 
     game.init()
 
-    for _ in range(num_episodes):
+    for _ in trange(num_episodes, leave=True):
         # Initialize the queue with 4 empty states
         queue = deque([list() for i in range(4)], maxlen=4)
 
