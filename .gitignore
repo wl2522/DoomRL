@@ -1,9 +1,9 @@
-*/.ipynb_checkpoints/*
+**/.ipynb_checkpoints/*
 .ipynb_checkpoints/*
-*/demos/*
+**/demos/*
 *.mp4
 *.ini
 /unfinished/*
-*/checkpoints/*
+**/checkpoints/*
 __pycache__/*
 *.jpg
