@@ -25,6 +25,7 @@ class QNetwork:
                                       kernel_size=[8, 8],
                                       strides=[4, 4],
                                       padding='valid',
+                                      data_format='channels_first',
                                       activation=tf.nn.relu,
                                       name=network_name + '_conv1_layer'
                                       )
