@@ -124,13 +124,14 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
                     action = np.random.randint(len(actions))
                 else:
                     action = model.choose_action(sess, phi)[0]
-                    game.make_action(actions[action], delay)
+
+                game.make_action(actions[action], delay)
 
                 # Replace the state we just popped with a new one
                 queue.append(list())
 
-            # Add a delay at each time step so that games occur at normal speed
-            time.sleep(0.02)
+                # Delay each time step so that games occur at normal speed
+                time.sleep(0.02)
 
         episode_rewards.append(game.get_total_reward())
         print('Test Episode {} Reward: {}'.format(i + 1,
