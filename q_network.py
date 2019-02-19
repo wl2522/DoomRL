@@ -2,8 +2,8 @@ import tensorflow as tf
 
 
 class QNetwork:
-    """Create a Q-network to estimate values and choose actions
-    for a given state.
+    """Create a Q-network to estimate expected values and choose
+    actions for a given state.
     """
     def __init__(self, network_name, height, width, num_actions,
                  learning_rate=0.001):

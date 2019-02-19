@@ -9,11 +9,11 @@ For each time step, collect the following data:
         (store the first game state if the previous action ends the episode)
     5. A variable indicating whether the episode is over yet
 """
+from collections import deque
 import yaml
 import tensorflow as tf
 import numpy as np
 import vizdoom as vd
-from collections import deque
 from tqdm import trange
 from helper import start_game, get_game_params, preprocess, test_agent
 from q_network import QNetwork, update_graph, update_target
@@ -210,8 +210,8 @@ for epoch in range(epochs):
     if (epoch + 1) % 10 == 0 and epoch > 0:
         update_target(update_ops, session)
 
-    # Save the model and test the agent for 10 episodes every 20 epochs
-    if (epoch + 1) % 10 == 0 and epoch > 0:
+    # Save the model and test the agent for 20 episodes every 20 epochs
+    if (epoch + 1) % 20 == 0 and epoch > 0:
         if save_model:
             checkpoint = model_dir + '-' + str(epoch + 1)
             print('Epoch {} Model saved to {}'.format(epoch + 1, model_dir))
