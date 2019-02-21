@@ -86,7 +86,7 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
         sess = session
 
     episode_rewards = list()
-    _, _, actions = get_game_params(game, downscale_ratio)
+    width, height, actions = get_game_params(game, downscale_ratio)
 
     game.init()
 
@@ -105,14 +105,19 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
             # Process only every 4th frame
             if counter % 4 == 0:
                 state = game.get_state()
-                state_buffer = preprocess(state.screen_buffer, downscale_ratio)
+                state_buffer = preprocess(state.screen_buffer,
+                                          downscale_ratio,
+                                          preserve_range=False)
+
+                # Add extra dimensions to concatenate the stacks of frames
+                state_buffer = state_buffer.reshape(1, 1, height, width)
 
                 for i in range(4):
                     queue[i].append(state_buffer)
 
                 # Pop and concatenate the oldest stack of frames
                 phi = queue.popleft()
-                phi = np.concatenate(phi)
+                phi = np.concatenate(phi, axis=1)
 
                 # Add an extra dimension to concatenate the stacks of frames
                 phi = np.expand_dims(phi, axis=0)
