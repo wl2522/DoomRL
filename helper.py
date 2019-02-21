@@ -19,26 +19,24 @@ def preprocess(image, downscale_ratio=1, preserve_range=False):
         required by the rescale() function in scikit-image
         2. Add an extra dimension at the front position to stack
         frames on
-        3. Convert the image to grayscale (remove the color dimension)
+        3. Downscale the image and normalize the image array so
+        that each array value is between 0 and 1
+        4. Convert the image to grayscale (remove the color dimension)
         since color adds unnecessary dimensions (and extra complexity)
         to the model training process
-        4. Normalize the image array so that each value is between 0 and 1
     """
-    #
     image = np.moveaxis(image, 0, 2)
-    image = np.expand_dims(image, axis=0)
-    image = rgb2gray(image)
 
     if float(downscale_ratio) != 1.0:
         image = rescale(image=image,
-                        scale=downscale_ratio,
+                        scale=(downscale_ratio,
+                               downscale_ratio),
                         mode='reflect',
-                        multichannel=False,
+                        multichannel=True,
                         preserve_range=preserve_range,
                         anti_aliasing=False)
 
-    # Normalize the image array
-    image /= 255.0
+    image = rgb2gray(image)
 
     return image
 
