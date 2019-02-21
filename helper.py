@@ -135,7 +135,8 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
                 queue.append(list())
 
                 # Delay each time step so that games occur at normal speed
-                time.sleep(0.02)
+                if real_time:
+                    time.sleep(0.02)
 
         episode_rewards.append(game.get_total_reward())
         print('Test Episode {} Reward: {}'.format(i + 1,
