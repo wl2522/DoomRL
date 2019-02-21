@@ -109,17 +109,18 @@ for epoch in range(epochs):
             if counter % 4 == 0:
                 state = game.get_state()
                 state1_buffer = preprocess(state.screen_buffer,
-                                           config['downscale_ratio'])
+                                           config['downscale_ratio'],
+                                           preserve_range=False)
+
+                # Add extra dimensions to concatenate the stacks of frames
+                state1_buffer = state1_buffer.reshape(1, 1, height, width)
 
                 for i in range(4):
                     queue[i].append(state1_buffer)
 
                 # Pop and concatenate the oldest stack of frames
                 phi = queue.popleft()
-                phi = np.concatenate(phi)
-
-                # Add an extra dimension to concatenate the stacks of frames
-                phi = np.expand_dims(phi, axis=0)
+                phi = np.concatenate(phi, axis=1)
 
                 # Explore the environment by choosing random actions
                 # with 100% probability for the first phase of training
@@ -167,14 +168,21 @@ for epoch in range(epochs):
                 # Replace the state we just popped with a new one
                 queue.append(list())
 
-                # Reuse the previous state if the episode has finished
                 if done:
+                    # Add zero arrays to stacks with less than 4 frames
+                    if phi.shape[1] < 4:
+                        zero_pad_dim = (1, 4 - phi.shape[1], height, width)
+                        phi = np.concatenate((phi, np.zeros(zero_pad_dim)),
+                                             axis=1)
+
+                    # Reuse the previous state if the episode has finished
                     experience.append(phi)
                     exp_buffer.add_experience((experience[0],
                                                action,
                                                reward,
                                                experience[0],
                                                done))
+                    experience.popleft()
 
         # Sample a minibatch from the buffer
         # (if there are enough experiences that have been saved already)
