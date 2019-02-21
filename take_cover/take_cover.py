@@ -231,9 +231,9 @@ for epoch in range(epochs):
         test_reward = test_agent(game,
                                  DQN,
                                  num_episodes=20,
-                                 load_model=False,
                                  downscale_ratio=config['downscale_ratio'],
                                  delay=config['frame_delay'],
+                                 real_time=False,
                                  session=session,
                                  model_dir=model_dir)
         print('Epoch {} Average Test Reward: {}'.format(epoch + 1,

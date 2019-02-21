@@ -73,16 +73,16 @@ def get_game_params(game, downscale_ratio):
 
 
 def test_agent(game, model, num_episodes, downscale_ratio, delay,
-               session=None, load_model=False, model_dir=None):
+               real_time=True, session=None, model_dir=None):
     """Test the agent using a currently training or previously trained model.
     """
-    if load_model:
+    if model_dir is None:
         sess = tf.Session()
         print('Loading model from', model_dir)
         tf.train.Saver().restore(sess, model_dir)
 
     # Require an existing session if a pretrained model isn't provided
-    elif not load_model:
+    else:
         sess = session
 
     episode_rewards = list()
