@@ -94,6 +94,11 @@ for epoch in range(epochs):
     game.init()
 
     for step in trange(steps_per_epoch, leave=True):
+        # Generate a new random seed each episode (must be less than 9 digits)
+        seed = np.random.randint(999999999)
+        game.set_seed(seed)
+        game.new_episode()
+
         experience = deque(maxlen=2)
 
         # Initialize the queue with 4 empty states
