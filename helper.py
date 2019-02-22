@@ -97,6 +97,9 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
         # Use a counter to keep track of how many frames have been proccessed
         counter = 0
 
+        # Generate a new random seed each episode (must be less than 9 digits)
+        seed = np.random.randint(999999999)
+        game.set_seed(seed)
         game.new_episode()
 
         while not game.is_episode_finished():
