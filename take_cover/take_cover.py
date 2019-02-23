@@ -16,7 +16,7 @@ import numpy as np
 import vizdoom as vd
 from tqdm import trange
 from helper import start_game, get_game_params, preprocess, test_agent
-from q_network import QNetwork, update_graph, update_target
+from q_network import QNetwork, update_graph, update_target, TBLogger
 from buffer import Buffer
 
 # Decide whether to train a new model or to restore from a checkpoint file
@@ -74,6 +74,9 @@ saver = tf.train.Saver(max_to_keep=num_ckpts, reshape=True)
 weights = tf.trainable_variables()
 
 update_ops = update_graph(weights)
+
+# Set up Tensorboard logging for the online network's training metrics
+logger = TBLogger(DQN.loss, DQN.learning_rate, config['log_dir'])
 
 if load_model:
     print('Loading model from', model_dir)
@@ -208,6 +211,11 @@ for epoch in range(epochs):
             Q2 = DQN.get_Q_values(session, s1)
             Q2[np.arange(batch_size), a] = r + gamma*(1 - terminal)*target_Q
             DQN.calculate_loss(session, s1, Q2)
+
+            # Calculate how many episodes have already been played
+            episode = epoch*config['steps_per_epoch'] + step
+            # Log the training loss and learning rate
+            logger.write_log(session, DQN, s1, Q2, episode)
 
         epoch_rewards.append(game.get_total_reward())
 

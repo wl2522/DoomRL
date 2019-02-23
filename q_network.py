@@ -111,3 +111,25 @@ def update_target(update_ops, session):
     """
     for op in update_ops:
         session.run(op)
+
+
+class TBLogger:
+    """Create a Tensorboard logger to record training loss and learning rate
+    while training the online Q-Network.
+    """
+    def __init__(self, dqn_loss, dqn_learning_rate, log_dir='./tensorboard'):
+        tf.summary.scalar('training_loss', dqn_loss)
+        tf.summary.scalar('learning_rate', dqn_learning_rate)
+
+        self.summarize = tf.summary.merge_all()
+        self.writer = tf.summary.FileWriter(log_dir,
+                                            graph=tf.get_default_graph())
+
+    def write_log(self, session, q_network, s, q, train_iter):
+        """Update the Tensorboard logs after an iteration of training.
+        """
+        iter_log = session.run(self.summarize,
+                               feed_dict={q_network.s_t: s,
+                                          q_network.Q_target: q})
+        self.writer.add_summary(iter_log, train_iter)
+        self.writer.flush()
