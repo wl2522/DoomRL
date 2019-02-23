@@ -26,51 +26,43 @@ save_model = True
 with open('take_cover/take_cover.yml') as config_file:
     config = yaml.load(config_file)
 
-# Specify the game scenario and the screen format/resolution
-game = start_game(screen_format=vd.ScreenFormat.BGR24,
-                  screen_res=vd.ScreenResolution.RES_640X480,
-                  config='take_cover/take_cover.cfg',
-                  sound=config['enable_sound'])
+# Rename some of the parameters with with shorter anmes
+phase1_len = config['phase1_ratio']*config['epochs']
+phase2_len = config['phase2_ratio']*config['epochs']
 
-width, height, actions = get_game_params(game,
-                                         config['downscale_ratio'])
-
-# Define the Q-network learning parameters
-frame_delay = config['frame_delay']
-buffer_size = config['buffer_size']
-
-epochs = config['epochs']
-phase1_len = config['phase1_ratio']*epochs
-phase2_len = config['phase2_ratio']*epochs
-
-steps_per_epoch = config['steps_per_epoch']
-learning_rate = config['learning_rate']
 gamma = config['gamma']
 start_epsilon = config['start_epsilon']
 end_epsilon = config['end_epsilon']
 batch_size = config['batch_size']
 
 model_dir = config['model_dir']
-num_ckpts = config['num_ckpts']
+
+# Specify the game scenario and the screen format/resolution
+game = start_game(screen_format=vd.ScreenFormat.BGR24,
+                  screen_res=vd.ScreenResolution.RES_640X480,
+                  config='basic/basic.cfg',
+                  sound=config['enable_sound'])
+
+width, height, actions = get_game_params(game, config['downscale_ratio'])
 
 tf.reset_default_graph()
 
 # Instantiate the target network before the online network
 # (so that it's updated correctly)
 target_net = QNetwork(network_name='target',
-                      learning_rate=learning_rate,
+                      learning_rate=config['learning_rate'],
                       height=height,
                       width=width,
                       num_actions=len(actions))
 DQN = QNetwork(network_name='online',
-               learning_rate=learning_rate,
+               learning_rate=config['learning_rate'],
                height=height,
                width=width,
                num_actions=len(actions))
 
-exp_buffer = Buffer(size=buffer_size)
+exp_buffer = Buffer(size=config['buffer_size'])
 session = tf.Session()
-saver = tf.train.Saver(max_to_keep=num_ckpts, reshape=True)
+saver = tf.train.Saver(max_to_keep=config['num_ckpts'], reshape=True)
 weights = tf.trainable_variables()
 
 update_ops = update_graph(weights)
@@ -92,10 +84,10 @@ epoch_rank = list()
 """Accumulate experiences in the buffer using an epsilon-greedy strategy
 with three training phases.
 """
-for epoch in range(epochs):
+for epoch in range(config['epochs']):
     epoch_rewards = list()
 
-    for step in trange(steps_per_epoch, leave=True):
+    for step in trange(config['steps_per_epoch'], leave=True):
         # Generate a new random seed each episode (must be less than 9 digits)
         seed = np.random.randint(999999999)
         game.set_seed(seed)
@@ -153,7 +145,8 @@ for epoch in range(epochs):
                     else:
                         action = DQN.choose_action(session, phi)[0]
 
-                reward += game.make_action(actions[action], frame_delay)
+                reward += game.make_action(actions[action],
+                                           config['frame_delay'])
                 done = game.is_episode_finished()
 
                 # Ignores the first states that don't contain 4 frames
