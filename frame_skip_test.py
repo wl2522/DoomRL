@@ -26,8 +26,6 @@ def training_iter(game, actions, buffer):
     counter = 0
 
     while not game.is_episode_finished():
-        # Increment the counter first because we check for divisibility by 4
-        counter += 1
         # Process only every 4th frame
         if counter % 4 == 0:
             state = game.get_state()
@@ -69,6 +67,7 @@ def training_iter(game, actions, buffer):
                                reward,
                                experience[0],
                                done))
+        counter += 1
 
         # Add a delay between each time step to slow down the gameplay
         time.sleep(0.01)

@@ -99,6 +99,7 @@ for epoch in range(epochs):
         game.new_episode()
 
         experience = deque(maxlen=2)
+        reward = 0
 
         # Initialize the queue with 4 empty states
         queue = deque([list() for i in range(4)], maxlen=4)
@@ -107,8 +108,6 @@ for epoch in range(epochs):
         counter = 0
 
         while not game.is_episode_finished():
-            # Advance the counter first because we check for divisibility by 4
-            counter += 1
             # Process only every 4th frame
             if counter % 4 == 0:
                 state = game.get_state()
@@ -151,7 +150,7 @@ for epoch in range(epochs):
                     else:
                         action = DQN.choose_action(session, phi)[0]
 
-                reward = game.make_action(actions[action], frame_delay)
+                reward += game.make_action(actions[action], frame_delay)
                 done = game.is_episode_finished()
 
                 # Ignores the first states that don't contain 4 frames
@@ -187,6 +186,14 @@ for epoch in range(epochs):
                                                experience[0],
                                                done))
                     experience.popleft()
+
+                # Reset the cumulative reward
+                reward = 0
+            else:
+                # Collect the cumulative rewards obtained from skipped frames
+                reward += game.get_last_reward()
+
+            counter += 1
 
         # Sample a minibatch from the buffer
         # (if there are enough experiences that have been saved already)
