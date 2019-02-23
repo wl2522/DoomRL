@@ -1,3 +1,4 @@
+from collections import deque
 import numpy as np
 
 
@@ -6,17 +7,13 @@ class Buffer:
     as state-action-reward tuples.
     """
     def __init__(self, size=1000):
-        self.buffer = list()
+        self.buffer = deque(maxlen=size)
         self.length = len(self.buffer)
-        self.size = size
 
     def add_experience(self, experience):
         """Add a new experience to the buffer.
         Remove the oldest experience in the buffer if it's already full.
         """
-        if self.length + 1 >= self.size:
-            self.buffer[0:(self.length + 1) - self.size] = []
-
         self.buffer.append(experience)
         self.length = len(self.buffer)
 
