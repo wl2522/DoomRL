@@ -82,7 +82,7 @@ if load_model:
 elif not load_model:
     session.run(tf.global_variables_initializer())
 
-#game.init()
+game.init()
 
 epoch_rank = list()
 
@@ -91,7 +91,6 @@ with three training phases.
 """
 for epoch in range(epochs):
     epoch_rewards = list()
-    game.init()
 
     for step in trange(steps_per_epoch, leave=True):
         # Generate a new random seed each episode (must be less than 9 digits)
@@ -205,8 +204,6 @@ for epoch in range(epochs):
 
         epoch_rewards.append(game.get_total_reward())
 
-    game.close()
-
     # Increase the discount factor at each epoch until it reaches 0.99
     if gamma < 0.99:
         gamma = 1-.98*(1-gamma)
@@ -249,4 +246,4 @@ for epoch in range(epochs):
 # Return a sorted list of epoch checkpoints based on
 # average test episode reward
 print(sorted(epoch_rank, reverse=True))
-#game.close()
+game.close()
