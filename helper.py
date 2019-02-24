@@ -9,7 +9,6 @@ import tensorflow as tf
 import vizdoom as vd
 from skimage.transform import rescale
 from skimage.color import rgb2gray
-from tqdm import trange
 
 
 def preprocess(image, downscale_ratio=1, preserve_range=False):
