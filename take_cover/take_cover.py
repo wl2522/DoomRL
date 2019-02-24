@@ -41,7 +41,8 @@ model_dir = config['model_dir']
 game = start_game(screen_format=vd.ScreenFormat.BGR24,
                   screen_res=vd.ScreenResolution.RES_640X480,
                   config='basic/basic.cfg',
-                  sound=config['enable_sound'])
+                  sound=config['enable_sound'],
+                  visible=config['window_visible'])
 
 width, height, actions = get_game_params(game, config['downscale_ratio'])
 
@@ -240,9 +241,10 @@ for epoch in range(config['epochs']):
         test_reward = test_agent(game,
                                  DQN,
                                  num_episodes=20,
-                                 downscale_ratio=config['downscale_ratio'],
-                                 delay=config['frame_delay'],
-                                 real_time=False,
+                                 config=config,
+                                 sound=True,
+                                 visible=True,
+                                 real_time=True,
                                  session=session,
                                  model_dir=model_dir)
         print('Epoch {} Average Test Reward: {}'.format(epoch + 1,
