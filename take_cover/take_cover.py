@@ -67,7 +67,7 @@ weights = tf.trainable_variables()
 update_ops = update_graph(weights)
 
 # Set up Tensorboard logging for the online network's training metrics
-logger = TBLogger(DQN.loss, DQN.learning_rate, config['log_dir'])
+logger = TBLogger(DQN.loss, DQN.learn_rate, config['log_dir'])
 
 if load_model:
     print('Loading model from', model_dir)

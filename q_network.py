@@ -9,7 +9,7 @@ class QNetwork:
                  learning_rate=0.001):
         # Map the network to its network name in the Tensorflow graph
         with tf.variable_scope(network_name):
-            self.learning_rate = learning_rate
+            self.learn_rate = learning_rate
             self.s_t = tf.placeholder(tf.float32,
                                       shape=[None, 4, height, width],
                                       name=network_name + '_state'
@@ -56,7 +56,7 @@ class QNetwork:
             self.best_action = tf.argmax(self.Q_values, 1)
             self.loss = tf.losses.mean_squared_error(self.Q_values,
                                                      self.Q_target)
-            self.adam = tf.train.AdamOptimizer(learning_rate=self.learning_rate,
+            self.adam = tf.train.AdamOptimizer(learning_rate=self.learn_rate,
                                                name=network_name + '_adam'
                                                )
             self.train = self.adam.minimize(self.loss)
@@ -64,9 +64,9 @@ class QNetwork:
     def update_lr(self):
         """Reduce the learning rate of the Q-Network by 2%.
         """
-        self.learning_rate = 0.98*self.learning_rate
+        self.learn_rate = 0.98*self.learn_rate
 
-        return self.learning_rate
+        return self.learn_rate
 
     def calculate_loss(self, session, s, q):
         """Compute the mean squared error for state s and apply the gradients.
