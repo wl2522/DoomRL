@@ -62,9 +62,8 @@ DQN = DoubleQNetwork(network_name='online',
 exp_buffer = Buffer(size=config['buffer_size'])
 session = tf.Session()
 saver = tf.train.Saver(max_to_keep=config['num_ckpts'], reshape=True)
-weights = tf.trainable_variables()
 
-update_ops = update_graph(weights)
+update_ops = update_graph('online', 'target')
 
 # Set up Tensorboard logging for the online network's training metrics
 logger = TBLogger(DQN.loss, DQN.learn_rate, config['log_dir'])

@@ -103,20 +103,22 @@ class DoubleQNetwork:
         return a
 
 
-def update_graph(variables):
+def update_graph(from_network_name, to_network_name):
     """When training a double DQN, create a list of variable
     update operations. These operations assign weight values from
-    the network named "online" to the one named "target".
+    one network to another.
     """
-    # Get the parameters of our DQNNetwork
-    online_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, "online")
+    # Get the parameters of our first network
+    online_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
+                                    from_network_name)
 
-    # Get the parameters of our Target_network
-    target_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, "target")
+    # Get the parameters of our second network
+    target_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
+                                    to_network_name)
 
     update_ops = list()
 
-    # Update our target_network parameters with DQNNetwork parameters
+    # Update our second network's parameters with first network's
     for online_vars, target_vars in zip(online_vars, target_vars):
         update_ops.append(target_vars.assign(online_vars))
     return update_ops
