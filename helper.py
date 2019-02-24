@@ -88,7 +88,7 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
     episode_rewards = list()
     width, height, actions = get_game_params(game, downscale_ratio)
 
-    for _ in trange(num_episodes, leave=True):
+    for _ in range(num_episodes):
         # Initialize the queue with 4 empty states
         queue = deque([list() for i in range(4)], maxlen=4)
 
