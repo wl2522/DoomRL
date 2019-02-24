@@ -100,15 +100,15 @@ for epoch in range(config['epochs']):
         # Process only every 4th frame
         if counter % 4 == 0:
             state = game.get_state()
-            state1_buffer = preprocess(state.screen_buffer,
-                                       config['downscale_ratio'],
-                                       preserve_range=False)
+            state_buffer = preprocess(state.screen_buffer,
+                                      config['downscale_ratio'],
+                                      preserve_range=False)
 
             # Add extra dimensions to concatenate the stacks of frames
-            state1_buffer = state1_buffer.reshape(1, 1, height, width)
+            state_buffer = state_buffer.reshape(1, 1, height, width)
 
             for i in range(4):
-                queue[i].append(state1_buffer)
+                queue[i].append(state_buffer)
 
             # Pop and concatenate the oldest stack of frames
             phi = queue.popleft()
