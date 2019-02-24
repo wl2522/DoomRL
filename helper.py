@@ -72,9 +72,11 @@ def get_game_params(game, downscale_ratio):
     return width, height, actions
 
 
-def test_agent(game, model, num_episodes, downscale_ratio, delay,
+def test_agent(game, model, num_episodes, config,
                real_time=True, session=None, model_dir=None):
     """Test the agent using a currently training or previously trained model.
+    Parameters related to model training and game instance settings
+    are read from a dictionary.
     """
     if model_dir is None:
         sess = tf.Session()
@@ -86,7 +88,7 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
         sess = session
 
     episode_rewards = list()
-    width, height, actions = get_game_params(game, downscale_ratio)
+    width, height, actions = get_game_params(game, config['downscale_ratio'])
 
     for episode in range(num_episodes):
         # Initialize the queue with 4 empty states
@@ -107,7 +109,7 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
             if counter % 4 == 0:
                 state = game.get_state()
                 state_buffer = preprocess(state.screen_buffer,
-                                          downscale_ratio,
+                                          config['downscale_ratio'],
                                           preserve_range=False)
 
                 # Add extra dimensions to concatenate the stacks of frames
@@ -130,7 +132,7 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
                 else:
                     action = model.choose_action(sess, phi)[0]
 
-                game.make_action(actions[action], delay)
+                game.make_action(actions[action], config['frame_delay'])
 
                 # Replace the state we just popped with a new one
                 queue.append(list())
