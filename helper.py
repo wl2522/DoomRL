@@ -40,7 +40,7 @@ def preprocess(image, downscale_ratio=1, preserve_range=False):
     return image
 
 
-def start_game(screen_format, screen_res, config, sound=False):
+def start_game(screen_format, screen_res, config, sound=False, visible=False):
     """Start an instance of a game of Doom.
 
     This function will create a new instance of DoomGame and set
@@ -51,6 +51,7 @@ def start_game(screen_format, screen_res, config, sound=False):
     game.set_screen_resolution(screen_res)
     game.load_config(config)
     game.set_sound_enabled(sound)
+    game.set_window_visible(visible)
 
     return game
 
