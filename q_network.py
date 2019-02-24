@@ -1,74 +1,32 @@
 import tensorflow as tf
 
 
-class DoubleQNetwork:
-    """Create a Q-network with 3 convolutional layers. Two of these
-    should be instantiated: one to estimate expected values and one to
-    choose actions for a given state.
+class BaseNetwork:
+    """A base class that has attributes and functions that are needed by
+    all of the Deep Q-networks.
     """
-    def __init__(self, network_name, height, width, num_actions,
+    def __init__(self, name, height, width, num_actions,
                  learning_rate=0.001):
+        self.name = name
+        self.height = height
+        self.width = width
+        self.num_actions = num_actions
+
         # Map the network to its network name in the Tensorflow graph
-        with tf.variable_scope(network_name):
+        with tf.variable_scope(name):
             self.learn_rate = learning_rate
             self.s_t = tf.placeholder(tf.float32,
-                                      shape=[None, 4, height, width],
-                                      name=network_name + '_state'
+                                      shape=[None, 4, self.height, self.width],
+                                      name=self.name + '_state'
                                       )
             self.a_t = tf.placeholder(tf.int32,
                                       shape=[None],
-                                      name=network_name + '_action'
+                                      name=self.name + '_action'
                                       )
             self.Q_target = tf.placeholder(tf.float32,
-                                           shape=[None, num_actions],
-                                           name=network_name + '_Q_target'
+                                           shape=[None, self.num_actions],
+                                           name=self.name + '_Q_target'
                                            )
-            self.conv1 = tf.layers.conv2d(inputs=self.s_t,
-                                          filters=32,
-                                          kernel_size=[6, 6],
-                                          strides=[3, 3],
-                                          padding='valid',
-                                          data_format='channels_first',
-                                          activation=tf.nn.relu,
-                                          name=network_name + '_conv1_layer'
-                                          )
-            self.conv2 = tf.layers.conv2d(inputs=self.conv1,
-                                          filters=64,
-                                          kernel_size=[3, 3],
-                                          strides=[2, 2],
-                                          padding='valid',
-                                          activation=tf.nn.relu,
-                                          name=network_name + '_conv2_layer'
-                                          )
-            self.conv3 = tf.layers.conv2d(inputs=self.conv2,
-                                          filters=128,
-                                          kernel_size=[3, 3],
-                                          strides=[2, 2],
-                                          padding='valid',
-                                          activation=tf.nn.relu,
-                                          name=network_name + 'conv3_layer'
-                                          )
-            self.flatten = tf.layers.flatten(self.conv3,
-                                             name=network_name + '_flatten'
-                                             )
-            self.dense = tf.layers.dense(inputs=self.flatten,
-                                         units=512,
-                                         activation=tf.nn.relu,
-                                         name=network_name + '_dense1_layer'
-                                         )
-            self.Q_values = tf.layers.dense(inputs=self.dense,
-                                            units=num_actions,
-                                            activation=None,
-                                            name=network_name + '_output_layer'
-                                            )
-
-            self.best_action = tf.argmax(self.Q_values, 1)
-            self.loss = tf.losses.mean_squared_error(self.Q_values,
-                                                     self.Q_target)
-            self.adam = tf.train.AdamOptimizer(learning_rate=self.learn_rate,
-                                               name=network_name + '_adam'
-                                               )
-            self.train = self.adam.minimize(self.loss)
 
     def update_lr(self):
         """Reduce the learning rate of the Q-Network by 2%.
@@ -76,6 +34,64 @@ class DoubleQNetwork:
         self.learn_rate = 0.98*self.learn_rate
 
         return self.learn_rate
+
+
+class DoubleQNetwork(BaseNetwork):
+    """Create a deep Q-network with 3 convolutional layers. Two of these
+    should be instantiated: one to estimate expected values and one to
+    choose actions for a given state.
+    """
+    def __init__(self, name, height, width, num_actions, learning_rate=0.001):
+        super().__init__(name, height, width, num_actions, learning_rate)
+
+        # Map the network to its network name in the Tensorflow graph
+        with tf.variable_scope(self.name):
+            self.conv1 = tf.layers.conv2d(inputs=self.s_t,
+                                          filters=32,
+                                          kernel_size=[6, 6],
+                                          strides=[3, 3],
+                                          padding='valid',
+                                          data_format='channels_first',
+                                          activation=tf.nn.relu,
+                                          name=self.name + '_conv1_layer'
+                                          )
+            self.conv2 = tf.layers.conv2d(inputs=self.conv1,
+                                          filters=64,
+                                          kernel_size=[3, 3],
+                                          strides=[2, 2],
+                                          padding='valid',
+                                          activation=tf.nn.relu,
+                                          name=self.name + '_conv2_layer'
+                                          )
+            self.conv3 = tf.layers.conv2d(inputs=self.conv2,
+                                          filters=128,
+                                          kernel_size=[3, 3],
+                                          strides=[2, 2],
+                                          padding='valid',
+                                          activation=tf.nn.relu,
+                                          name=self.name + 'conv3_layer'
+                                          )
+            self.flatten = tf.layers.flatten(self.conv3,
+                                             name=self.name + '_flatten'
+                                             )
+            self.dense = tf.layers.dense(inputs=self.flatten,
+                                         units=512,
+                                         activation=tf.nn.relu,
+                                         name=self.name + '_dense1_layer'
+                                         )
+            self.Q_values = tf.layers.dense(inputs=self.dense,
+                                            units=self.num_actions,
+                                            activation=None,
+                                            name=self.name + '_output_layer'
+                                            )
+
+            self.best_action = tf.argmax(self.Q_values, 1)
+            self.loss = tf.losses.mean_squared_error(self.Q_values,
+                                                     self.Q_target)
+            self.adam = tf.train.AdamOptimizer(learning_rate=self.learn_rate,
+                                               name=self.name + '_adam'
+                                               )
+            self.train = self.adam.minimize(self.loss)
 
     def calculate_loss(self, session, s, q):
         """Compute the mean squared error for state s and apply the gradients.

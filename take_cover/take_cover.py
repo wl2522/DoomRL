@@ -48,12 +48,12 @@ width, height, actions = get_game_params(game, config['downscale_ratio'])
 
 tf.reset_default_graph()
 
-target_net = DoubleQNetwork(network_name='target',
+target_net = DoubleQNetwork(name='target',
                             learning_rate=config['learning_rate'],
                             height=height,
                             width=width,
                             num_actions=len(actions))
-DQN = DoubleQNetwork(network_name='online',
+DQN = DoubleQNetwork(name='online',
                      learning_rate=config['learning_rate'],
                      height=height,
                      width=width,
