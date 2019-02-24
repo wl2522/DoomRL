@@ -72,7 +72,7 @@ def get_game_params(game, downscale_ratio):
     return width, height, actions
 
 
-def test_agent(game, model, num_episodes, config,
+def test_agent(game, model, num_episodes, config, sound=False, visible=True,
                real_time=True, session=None, model_dir=None):
     """Test the agent using a currently training or previously trained model.
     Parameters related to model training and game instance settings
@@ -86,6 +86,14 @@ def test_agent(game, model, num_episodes, config,
     # Require an existing session if a pretrained model isn't provided
     else:
         sess = session
+
+    # Initiate a new game if the sound or visible parameters
+    # differ from what's in the config dictionary
+    if sound != config['enable_sound'] or visible != config['window_visible']:
+        game.close()
+        game.set_window_visible(visible)
+        game.set_sound_enabled(sound)
+        game.init()
 
     episode_rewards = list()
     width, height, actions = get_game_params(game, config['downscale_ratio'])
@@ -144,5 +152,12 @@ def test_agent(game, model, num_episodes, config,
         episode_rewards.append(game.get_total_reward())
         print('Test Episode {} Reward: {}'.format(episode + 1,
                                                   game.get_total_reward()))
+
+    # Create a new game instance with the previous sound/window settings
+    if sound != config['enable_sound'] or visible != config['window_visible']:
+        game.close()
+        game.set_window_visible(config['window_visible'])
+        game.set_sound_enabled(config['enable_sound'])
+        game.init()
 
     return np.mean(episode_rewards)
