@@ -185,6 +185,25 @@ for epoch in range(config['epochs']):
                 game.set_seed(seed)
                 game.new_episode()
 
+            # Sample a minibatch from the buffer
+            # (if there are enough experiences that have been saved already)
+            if exp_buffer.length > batch_size:
+                s1, a, r, s2, terminal = exp_buffer.sample_buffer(batch_size)
+
+                # Get the target values from the target Q-network
+                target_Q = np.max(target_net.get_Q_values(session, s2), axis=1)
+
+                # Train the online Q-network by using a minibatch to
+                # update the action-value function
+                Q2 = DQN.get_Q_values(session, s1)
+                Q2[np.arange(batch_size), a] = r + gamma*(1 - terminal)*target_Q
+                DQN.calculate_loss(session, s1, Q2)
+
+                # Calculate how many episodes have already been played
+                episode = epoch*config['steps_per_epoch'] + step
+                # Log the training loss and learning rate
+                logger.write_log(session, DQN, s1, Q2, episode)
+
             # Reset the cumulative reward
             reward = 0
         else:
@@ -192,25 +211,6 @@ for epoch in range(config['epochs']):
             reward += game.get_last_reward()
 
         counter += 1
-
-        # Sample a minibatch from the buffer
-        # (if there are enough experiences that have been saved already)
-        if exp_buffer.length > batch_size:
-            s1, a, r, s2, terminal = exp_buffer.sample_buffer(batch_size)
-
-            # Get the target values from the target Q-network
-            target_Q = np.max(target_net.get_Q_values(session, s2), axis=1)
-
-            # Train the online Q-network by using a minibatch to
-            # update the action-value function
-            Q2 = DQN.get_Q_values(session, s1)
-            Q2[np.arange(batch_size), a] = r + gamma*(1 - terminal)*target_Q
-            DQN.calculate_loss(session, s1, Q2)
-
-            # Calculate how many episodes have already been played
-            episode = epoch*config['steps_per_epoch'] + step
-            # Log the training loss and learning rate
-            logger.write_log(session, DQN, s1, Q2, episode)
 
     # Increase the discount factor at each epoch until it reaches 0.99
     if gamma < 0.99:
