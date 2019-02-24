@@ -50,9 +50,6 @@ def training_iter(game, actions, buffer, num_steps):
                            experience[1],
                            done))
 
-            # Pop the oldest state to make room for the next one
-            experience.popleft()
-
         # Replace the state we just popped with a new one
         queue.append(list())
 

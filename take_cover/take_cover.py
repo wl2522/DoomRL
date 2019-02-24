@@ -147,9 +147,6 @@ for epoch in range(config['epochs']):
                                        experience[1],
                                        done))
 
-            # Pop the oldest state to make room for the next one
-            experience.popleft()
-
         # Replace the state we just popped with a new one
         queue.append(list())
 
@@ -167,7 +164,6 @@ for epoch in range(config['epochs']):
                                        reward,
                                        experience[0],
                                        done))
-            experience.popleft()
 
             epoch_rewards.append(game.get_total_reward())
 
