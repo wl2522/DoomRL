@@ -88,11 +88,6 @@ for epoch in range(config['epochs']):
     epoch_rewards = list()
 
     for step in trange(config['steps_per_epoch'], leave=True):
-        # Generate a new random seed each episode (must be less than 9 digits)
-        seed = np.random.randint(999999999)
-        game.set_seed(seed)
-        game.new_episode()
-
         experience = deque(maxlen=2)
         reward = 0
 
@@ -102,94 +97,101 @@ for epoch in range(config['epochs']):
         # Use a counter to keep track of how many frames have been proccessed
         counter = 0
 
-        while not game.is_episode_finished():
-            # Process only every 4th frame
-            if counter % 4 == 0:
-                state = game.get_state()
-                state1_buffer = preprocess(state.screen_buffer,
-                                           config['downscale_ratio'],
-                                           preserve_range=False)
+        # Process only every 4th frame
+        if counter % 4 == 0:
+            state = game.get_state()
+            state1_buffer = preprocess(state.screen_buffer,
+                                       config['downscale_ratio'],
+                                       preserve_range=False)
 
-                # Add extra dimensions to concatenate the stacks of frames
-                state1_buffer = state1_buffer.reshape(1, 1, height, width)
+            # Add extra dimensions to concatenate the stacks of frames
+            state1_buffer = state1_buffer.reshape(1, 1, height, width)
 
-                for i in range(4):
-                    queue[i].append(state1_buffer)
+            for i in range(4):
+                queue[i].append(state1_buffer)
 
-                # Pop and concatenate the oldest stack of frames
-                phi = queue.popleft()
-                phi = np.concatenate(phi, axis=1)
+            # Pop and concatenate the oldest stack of frames
+            phi = queue.popleft()
+            phi = np.concatenate(phi, axis=1)
 
-                # Explore the environment by choosing random actions
-                # with 100% probability for the first phase of training
-                # (also choose a random action if there are less
-                # than 4 frames in the current state)
-                if epoch < phase1_len or phi.shape[1] < 4:
+            # Explore the environment by choosing random actions
+            # with 100% probability for the first phase of training
+            # (also choose a random action if there are less
+            # than 4 frames in the current state)
+            if epoch < phase1_len or phi.shape[1] < 4:
+                action = np.random.randint(len(actions))
+
+            # Increase the probability of greedily choosing an action by a
+            # constant amount at each epoch in the second phase
+            elif epoch < phase2_len:
+                epsilon = start_epsilon - (epoch + 1 - phase1_len)*(start_epsilon - end_epsilon)/(phase2_len - phase1_len)
+
+                if np.random.uniform(0, 1) <= epsilon:
                     action = np.random.randint(len(actions))
-
-                # Increase the probability of greedily choosing an action by a
-                # constant amount at each epoch in the second phase
-                elif epoch < phase2_len:
-                    epsilon = start_epsilon - (epoch + 1 - phase1_len)*(start_epsilon - end_epsilon)/(phase2_len - phase1_len)
-
-                    if np.random.uniform(0, 1) <= epsilon:
-                        action = np.random.randint(len(actions))
-                    else:
-                        action = DQN.choose_action(session, phi)[0]
-
-                # Select a random action with 10% probability in
-                # the final phase of training
                 else:
-                    if np.random.uniform(0, 1) <= end_epsilon:
-                        action = np.random.randint(len(actions))
-                    else:
-                        action = DQN.choose_action(session, phi)[0]
+                    action = DQN.choose_action(session, phi)[0]
 
-                reward += game.make_action(actions[action],
-                                           config['frame_delay'])
-                done = game.is_episode_finished()
-
-                # Ignores the first states that don't contain 4 frames
-                if phi.shape[1] == 4:
-                    experience.append(phi)
-
-                # Add experiences to the buffer as pairs of consecutive states
-                if len(experience) == 2:
-                    exp_buffer.add_experience((experience[0],
-                                               action,
-                                               reward,
-                                               experience[1],
-                                               done))
-
-                    # Pop the oldest state to make room for the next one
-                    experience.popleft()
-
-                # Replace the state we just popped with a new one
-                queue.append(list())
-
-                if done:
-                    # Add zero arrays to stacks with less than 4 frames
-                    if phi.shape[1] < 4:
-                        zero_pad_dim = (1, 4 - phi.shape[1], height, width)
-                        phi = np.concatenate((phi, np.zeros(zero_pad_dim)),
-                                             axis=1)
-
-                    # Reuse the previous state if the episode has finished
-                    experience.append(phi)
-                    exp_buffer.add_experience((experience[0],
-                                               action,
-                                               reward,
-                                               experience[0],
-                                               done))
-                    experience.popleft()
-
-                # Reset the cumulative reward
-                reward = 0
+            # Select a random action with 10% probability in
+            # the final phase of training
             else:
-                # Collect the cumulative rewards obtained from skipped frames
-                reward += game.get_last_reward()
+                if np.random.uniform(0, 1) <= end_epsilon:
+                    action = np.random.randint(len(actions))
+                else:
+                    action = DQN.choose_action(session, phi)[0]
 
-            counter += 1
+            reward += game.make_action(actions[action],
+                                       config['frame_delay'])
+            done = game.is_episode_finished()
+
+            # Ignores the first states that don't contain 4 frames
+            if phi.shape[1] == 4:
+                experience.append(phi)
+
+            # Add experiences to the buffer as pairs of consecutive states
+            if len(experience) == 2:
+                exp_buffer.add_experience((experience[0],
+                                           action,
+                                           reward,
+                                           experience[1],
+                                           done))
+
+                # Pop the oldest state to make room for the next one
+                experience.popleft()
+
+            # Replace the state we just popped with a new one
+            queue.append(list())
+
+            if done:
+                # Add zero arrays to stacks with less than 4 frames
+                if phi.shape[1] < 4:
+                    zero_pad_dim = (1, 4 - phi.shape[1], height, width)
+                    phi = np.concatenate((phi, np.zeros(zero_pad_dim)),
+                                         axis=1)
+
+                # Reuse the previous state if the episode has finished
+                experience.append(phi)
+                exp_buffer.add_experience((experience[0],
+                                           action,
+                                           reward,
+                                           experience[0],
+                                           done))
+                experience.popleft()
+
+                epoch_rewards.append(game.get_total_reward())
+
+                # Generate a new random seed for each episode
+                # (must be less than 9 digits)
+                seed = np.random.randint(999999999)
+                game.set_seed(seed)
+                game.new_episode()
+
+            # Reset the cumulative reward
+            reward = 0
+        else:
+            # Collect the cumulative rewards obtained from skipped frames
+            reward += game.get_last_reward()
+
+        counter += 1
 
         # Sample a minibatch from the buffer
         # (if there are enough experiences that have been saved already)
@@ -209,8 +211,6 @@ for epoch in range(config['epochs']):
             episode = epoch*config['steps_per_epoch'] + step
             # Log the training loss and learning rate
             logger.write_log(session, DQN, s1, Q2, episode)
-
-        epoch_rewards.append(game.get_total_reward())
 
     # Increase the discount factor at each epoch until it reaches 0.99
     if gamma < 0.99:
