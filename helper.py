@@ -88,7 +88,7 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
     episode_rewards = list()
     width, height, actions = get_game_params(game, downscale_ratio)
 
-    for _ in range(num_episodes):
+    for episode in range(num_episodes):
         # Initialize the queue with 4 empty states
         queue = deque([list() for i in range(4)], maxlen=4)
 
@@ -140,7 +140,7 @@ def test_agent(game, model, num_episodes, downscale_ratio, delay,
                     time.sleep(0.02)
 
         episode_rewards.append(game.get_total_reward())
-        print('Test Episode {} Reward: {}'.format(i + 1,
+        print('Test Episode {} Reward: {}'.format(episode + 1,
                                                   game.get_total_reward()))
 
     return np.mean(episode_rewards)
