@@ -16,7 +16,7 @@ import numpy as np
 import vizdoom as vd
 from tqdm import trange
 from helper import start_game, get_game_params, preprocess, test_agent
-from q_network import QNetwork, update_graph, update_target, TBLogger
+from q_network import DoubleQNetwork, update_graph, update_target, TBLogger
 from buffer import Buffer
 
 # Decide whether to train a new model or to restore from a checkpoint file
@@ -48,16 +48,16 @@ width, height, actions = get_game_params(game, config['downscale_ratio'])
 
 tf.reset_default_graph()
 
-target_net = QNetwork(network_name='target',
-                      learning_rate=config['learning_rate'],
-                      height=height,
-                      width=width,
-                      num_actions=len(actions))
-DQN = QNetwork(network_name='online',
-               learning_rate=config['learning_rate'],
-               height=height,
-               width=width,
-               num_actions=len(actions))
+target_net = DoubleQNetwork(network_name='target',
+                            learning_rate=config['learning_rate'],
+                            height=height,
+                            width=width,
+                            num_actions=len(actions))
+DQN = DoubleQNetwork(network_name='online',
+                     learning_rate=config['learning_rate'],
+                     height=height,
+                     width=width,
+                     num_actions=len(actions))
 
 exp_buffer = Buffer(size=config['buffer_size'])
 session = tf.Session()
