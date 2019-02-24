@@ -87,14 +87,13 @@ with three training phases.
 """
 for epoch in range(config['epochs']):
     epoch_rewards = list()
+    experience = deque(maxlen=2)
+    reward = 0
+
+    # Initialize the queue with 4 empty states
+    queue = deque([list() for i in range(4)], maxlen=4)
 
     for step in trange(config['steps_per_epoch'], leave=True):
-        experience = deque(maxlen=2)
-        reward = 0
-
-        # Initialize the queue with 4 empty states
-        queue = deque([list() for i in range(4)], maxlen=4)
-
         # Use a counter to keep track of how many frames have been proccessed
         counter = 0
 
@@ -186,6 +185,12 @@ for epoch in range(config['epochs']):
                 game.set_seed(seed)
                 game.new_episode()
 
+                experience = deque(maxlen=2)
+                reward = 0
+
+                # Initialize the queue with 4 empty states
+                queue = deque([list() for i in range(4)], maxlen=4)
+
             # Sample a minibatch from the buffer
             # (if there are enough experiences that have been saved already)
             if exp_buffer.length > batch_size:
@@ -251,6 +256,7 @@ for epoch in range(config['epochs']):
                                                         test_reward))
 
         epoch_rank.append((test_reward, epoch + 1))
+        game.new_episode()
 
 # Return a sorted list of epoch checkpoints based on
 # average test episode reward
