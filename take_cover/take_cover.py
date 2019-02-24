@@ -224,9 +224,8 @@ for epoch in range(config['epochs']):
 
     print('Epoch {} Mean Reward: {}'.format(epoch + 1, np.mean(epoch_rewards)))
 
-    # Update the target network every 10 epochs
-    if (epoch + 1) % 10 == 0 and epoch > 0:
-        update_target(update_ops, session)
+    # Update the target network after every epoch
+    update_target(update_ops, session)
 
     # Save the model and test the agent for 20 episodes every 20 epochs
     if (epoch + 1) % 20 == 0 and epoch > 0:
