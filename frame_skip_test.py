@@ -13,7 +13,7 @@ import vizdoom as vd
 from helper import start_game, get_game_params
 
 
-def training_iter(game, actions, buffer):
+def training_iter(game, actions, buffer, num_steps):
     """This function demonstrates the frame skipping algorithm within
     each time step of a game instance.
     """
@@ -22,52 +22,55 @@ def training_iter(game, actions, buffer):
     # Initialize the queue with 4 empty states
     queue = deque([list() for i in range(4)], maxlen=4)
 
-    # Use a counter to keep track of how many frames have been proccessed
-    counter = 0
+    for step in range(num_steps):
+        state = game.get_state()
+        state_buffer = np.moveaxis(state.screen_buffer, 0, 2)
 
-    while not game.is_episode_finished():
-        # Process only every 4th frame
-        if counter % 4 == 0:
-            state = game.get_state()
-            state_buffer = np.moveaxis(state.screen_buffer, 0, 2)
+        for i in range(4):
+            queue[i].append(state_buffer)
 
-            for i in range(4):
-                queue[i].append(state_buffer)
+        # Pop and concatenate the oldest stack of frames
+        phi = queue.popleft()
 
-            action = np.random.randint(len(actions))
-            print(counter, action)
-            reward = game.make_action(actions[action], 4)
-            done = game.is_episode_finished()
+        action = np.random.randint(len(actions))
+        print(step, action)
 
-            phi = queue.popleft()
+        reward = game.make_action(actions[action], 4)
+        done = game.is_episode_finished()
 
-            # Ignores the first states that don't contain 4 frames
-            if len(phi) == 4:
-                experience.append((counter//4, phi))
+        # Ignores the first states that don't contain 4 frames
+        if len(phi) == 4:
+            experience.append(phi)
 
-            # Add experiences to the buffer as pairs of consecutive states
-            if len(experience) == 2:
-                buffer.append((experience[0],
-                               action,
-                               reward,
-                               experience[1],
-                               done))
+        # Add experiences to the buffer as pairs of consecutive states
+        if len(experience) == 2:
+            buffer.append((experience[0],
+                           action,
+                           reward,
+                           experience[1],
+                           done))
 
-                # Pop the oldest state to make room for the next one
-                experience.popleft()
+            # Pop the oldest state to make room for the next one
+            experience.popleft()
 
-            # Replace the state we just popped with a new one
-            queue.append(list())
+        # Replace the state we just popped with a new one
+        queue.append(list())
 
+        if done:
             # Reuse the previous state if the episode has finished
-            if done:
-                experience.append((counter//4, phi))
-                buffer.append((experience[0],
-                               action,
-                               reward,
-                               experience[0],
-                               done))
-        counter += 1
+            experience.append(phi)
+            buffer.append((experience[0],
+                           action,
+                           reward,
+                           experience[0],
+                           done))
+            experience.popleft()
+            game.new_episode()
+
+            experience = deque(maxlen=2)
+
+            # Initialize the queue with 4 empty states
+            queue = deque([list() for i in range(4)], maxlen=4)
 
         # Add a delay between each time step to slow down the gameplay
         time.sleep(0.01)
@@ -81,14 +84,15 @@ def main(num_steps, config_file, downscale_ratio=0.125, save_images=True):
     """
     game = start_game(screen_format=vd.ScreenFormat.BGR24,
                       screen_res=vd.ScreenResolution.RES_640X480,
-                      config=config_file)
+                      config=config_file,
+                      sound=False,
+                      visible=True)
     _, _, actions = get_game_params(game, downscale_ratio)
     buffer = list()
 
     game.init()
 
-    for _ in range(num_steps):
-        training_iter(game, actions, buffer)
+    training_iter(game, actions, buffer, num_steps)
 
     game.close()
 
@@ -98,7 +102,7 @@ def main(num_steps, config_file, downscale_ratio=0.125, save_images=True):
             # Read each time step's before and after game state frames
             for state in (0, 3):
                 for image in range(4):
-                    frame = np.squeeze(stack[state][1][image])
+                    frame = np.squeeze(stack[state][image])
                     # Label each frame to indicate their relative orders
                     order = int(state == 3)
                     imwrite('{}_{}_{}.jpg'.format(idx, order, image),
@@ -106,4 +110,4 @@ def main(num_steps, config_file, downscale_ratio=0.125, save_images=True):
 
 
 if __name__ == '__main__':
-    main(16, 'take_cover/take_cover.cfg')
+    main(100, 'take_cover/take_cover.cfg')
