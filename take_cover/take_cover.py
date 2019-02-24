@@ -48,8 +48,6 @@ width, height, actions = get_game_params(game, config['downscale_ratio'])
 
 tf.reset_default_graph()
 
-# Instantiate the target network before the online network
-# (so that it's updated correctly)
 target_net = QNetwork(network_name='target',
                       learning_rate=config['learning_rate'],
                       height=height,

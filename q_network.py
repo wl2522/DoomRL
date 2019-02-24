@@ -94,14 +94,19 @@ class QNetwork:
 
 def update_graph(variables):
     """Create a list of variable update operations. These operations assign
-    weight values from the network created first to the one created second.
+    weight values from the network named "online" to the one named "target".
     """
+    # Get the parameters of our DQNNetwork
+    online_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, "online")
+
+    # Get the parameters of our Target_network
+    target_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, "target")
+
     update_ops = list()
 
-    for idx, variable in enumerate(variables[:len(variables)//2]):
-        op = variable.assign(variables[idx + len(variables)//2].value())
-        update_ops.append(op)
-
+    # Update our target_network parameters with DQNNetwork parameters
+    for online_vars, target_vars in zip(online_vars, target_vars):
+        update_ops.append(target_vars.assign(online_vars))
     return update_ops
 
 
