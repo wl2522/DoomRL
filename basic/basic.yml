@@ -1,0 +1,20 @@
+---
+downscale_ratio: 0.125
+enable_sound: False
+window_visible: False
+frame_stack_len: 1
+frame_delay: 12
+buffer_size: 50000
+epochs: 40
+phase1_ratio: 0.2
+phase2_ratio: 0.9
+steps_per_epoch: 2000
+learning_rate: 0.0025
+gamma: 0
+start_epsilon: 1.0
+end_epsilon: 0.1
+batch_size: 100
+model_dir: './checkpoints/take_cover.ckpt'
+log_dir: './tensorboard'
+num_ckpts: 40
+...
