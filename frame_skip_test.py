@@ -6,31 +6,24 @@ during an actual game instance of Doom.
 Adapted from: https://github.com/mwydmuch/ViZDoom/issues/296
 """
 import time
-from collections import deque
 import numpy as np
 from imageio import imwrite
 import vizdoom as vd
 from helper import start_game, get_game_params
+from buffer import Buffer, FrameQueue
 
 
 def training_iter(game, actions, buffer, steps, stack_len, frame_skip):
     """This function demonstrates the frame skipping algorithm within
     each time step of a game instance.
     """
-    experience = deque(maxlen=2)
-
-    # Initialize the queue with empty stacks
-    queue = deque([list() for i in range(stack_len)], maxlen=stack_len)
+    queue = FrameQueue(stack_len)
 
     for step in range(steps):
         state = game.get_state()
         state_buffer = np.moveaxis(state.screen_buffer, 0, 2)
 
-        for i in range(stack_len):
-            queue[i].append(state_buffer)
-
-        # Pop and concatenate the oldest stack of frames
-        phi = queue.popleft()
+        phi = queue.stack_frame(state_buffer)
 
         action = np.random.randint(len(actions))
         print(step, action)
@@ -38,36 +31,13 @@ def training_iter(game, actions, buffer, steps, stack_len, frame_skip):
         reward = game.make_action(actions[action], frame_skip)
         done = game.is_episode_finished()
 
-        # Ignores the first states that don't contain enough frames
-        if len(phi) == stack_len:
-            experience.append(phi)
+        queue.queue_experience(phi, done)
 
-        # Add experiences to the buffer as pairs of consecutive states
-        if len(experience) == 2:
-            buffer.append((experience[0],
-                           action,
-                           reward,
-                           experience[1],
-                           done))
-
-        # Replace the state we just popped with a new one
-        queue.append(list())
+        queue.add_to_buffer(buffer, action, reward, done)
 
         if done:
-            # Reuse the previous state if the episode has finished
-            experience.append(phi)
-            buffer.append((experience[0],
-                           action,
-                           reward,
-                           experience[0],
-                           done))
-            experience.popleft()
             game.new_episode()
-
-            experience = deque(maxlen=2)
-
-            # Initialize the queue with  empty stacks
-            queue = deque([list() for i in range(stack_len)], maxlen=stack_len)
+            queue = FrameQueue(stack_len)
 
         # Add a delay between each time step to slow down the gameplay
         time.sleep(0.01)
@@ -86,7 +56,7 @@ def main(steps, stack_len, frame_skip, config_file,
                       sound=False,
                       visible=True)
     _, _, actions = get_game_params(game, downscale_ratio)
-    buffer = list()
+    buffer = Buffer()
 
     game.init()
 
@@ -96,7 +66,7 @@ def main(steps, stack_len, frame_skip, config_file,
 
     # Save each image from the buffer in the order they were inserted in
     if save:
-        for idx, stack in enumerate(buffer):
+        for idx, stack in enumerate(buffer.memory):
             # Read each time step's before and after game state frames
             for state in (0, 3):
                 for image in range(stack_len):

@@ -52,3 +52,77 @@ class Buffer:
                             dtype=np.int32)
 
         return s1, a, r, s2, terminal
+
+
+class FrameQueue:
+    """Create a queue that stacks incoming screen buffer frames into
+    game states according to the frame skipping algorithm. Each game state
+    is then inserted into a separate queue that stores pairs of
+    game states.
+    Each game state is grouped into an experience tuple
+    along with the corresponding action taken at that state,
+    the reward received, the next game state, and an indicator variable
+    denoting whether the episode has ended or not.
+    This experience is then finally added to the memory buffer.
+    """
+    def __init__(self, stack_len):
+        self.stack_len = stack_len
+        self.frame_queue = deque([list() for i in range(self.stack_len)],
+                                 maxlen=self.stack_len)
+        self.experience_queue = deque(maxlen=2)
+
+    def stack_frame(self, frame):
+        """Add a new frame into each frame stack in the queue.
+        """
+        for i in range(self.stack_len):
+            self.frame_queue[i].append(frame)
+
+        # Pop and concatenate the oldest stack of frames
+        stack = self.frame_queue.popleft()
+        stack = np.concatenate(stack, axis=1)
+
+        # Replace the state we just popped with a new one
+        self.frame_queue.append(list())
+
+        return stack
+
+    def queue_experience(self, stack, done):
+        """Add a game state into the experience prior to it being included
+         in an experience tuple. Ignore the first few states of an episode
+        which don't contain enough frames to create a game state.
+
+        If a episode has finished and ther aren't enough remaining frames
+        to create a full game state, then that terminal game state is padded
+        with zero arrays until the sufficient stack length is reached.
+        """
+        if not done:
+            if len(stack) == self.stack_len:
+                self.experience_queue.append(stack)
+        else:
+            if stack.shape[1] < self.stack_len:
+                # Infer the height and width of the frame from the input stack
+                pad_len = self.stack_len - stack.shape[1]
+                pad_shape = (1, pad_len, *stack.shape[-2:])
+
+                stack = np.concatenate((stack, np.zeros(pad_shape)), axis=1)
+                self.experience_queue.append(stack)
+
+    def add_to_buffer(self, buffer, action, reward, done):
+        """Add the contents of the experience queue to the buffer
+        along with the corresponding action, reward, and
+        the episode finished indicator variable.
+        """
+        if len(self.experience_queue) == 2:
+            if not done:
+                buffer.add_experience((self.experience_queue[0],
+                                       action,
+                                       reward,
+                                       self.experience_queue[1],
+                                       done))
+            else:
+                # Reuse the previous state if the episode has finished
+                buffer.add_experience((self.experience_queue[0],
+                                       action,
+                                       reward,
+                                       self.experience_queue[0],
+                                       done))
