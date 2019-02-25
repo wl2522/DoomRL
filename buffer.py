@@ -7,15 +7,15 @@ class Buffer:
     as state-action-reward tuples.
     """
     def __init__(self, size=1000):
-        self.buffer = deque(maxlen=size)
-        self.length = len(self.buffer)
+        self.memory = deque(maxlen=size)
+        self.length = len(self.memory)
 
     def add_experience(self, experience):
         """Add a new experience to the buffer.
         Remove the oldest experience in the buffer if it's already full.
         """
-        self.buffer.append(experience)
-        self.length = len(self.buffer)
+        self.memory.append(experience)
+        self.length = len(self.memory)
 
     def sample_buffer(self, sample_size):
         """Return a batch of experience arrays randomly
@@ -42,13 +42,13 @@ class Buffer:
 
         """
         sample = np.random.choice(self.length, size=sample_size, replace=False)
-        s1 = np.concatenate([self.buffer[idx][0] for idx in sample],
+        s1 = np.concatenate([self.memory[idx][0] for idx in sample],
                             axis=0)
-        a = np.array([self.buffer[idx][1] for idx in sample])
-        r = np.array([self.buffer[idx][2] for idx in sample])
-        s2 = np.concatenate([self.buffer[idx][3] for idx in sample],
+        a = np.array([self.memory[idx][1] for idx in sample])
+        r = np.array([self.memory[idx][2] for idx in sample])
+        s2 = np.concatenate([self.memory[idx][3] for idx in sample],
                             axis=0)
-        terminal = np.array([self.buffer[idx][4] for idx in sample],
+        terminal = np.array([self.memory[idx][4] for idx in sample],
                             dtype=np.int32)
 
         return s1, a, r, s2, terminal
