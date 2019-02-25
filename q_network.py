@@ -5,18 +5,22 @@ class BaseNetwork:
     """A base class that has attributes and functions that are needed by
     all of the Deep Q-networks.
     """
-    def __init__(self, name, height, width, num_actions,
-                 learning_rate=0.001):
+    def __init__(self, name, height, width, num_actions, stack_len,
+                 learning_rate):
         self.name = name
         self.height = height
         self.width = width
+        self.stack_len = stack_len
         self.num_actions = num_actions
 
         # Map the network to its network name in the Tensorflow graph
         with tf.variable_scope(name):
             self.learn_rate = learning_rate
             self.s_t = tf.placeholder(tf.float32,
-                                      shape=[None, 4, self.height, self.width],
+                                      shape=[None,
+                                             stack_len,
+                                             self.height,
+                                             self.width],
                                       name=self.name + '_state'
                                       )
             self.a_t = tf.placeholder(tf.int32,
@@ -41,8 +45,14 @@ class DoubleQNetwork(BaseNetwork):
     should be instantiated: one to estimate expected values and one to
     choose actions for a given state.
     """
-    def __init__(self, name, height, width, num_actions, learning_rate=0.001):
-        super().__init__(name, height, width, num_actions, learning_rate)
+    def __init__(self, name, height, width, num_actions, stack_len=4,
+                 learning_rate=0.001):
+        super().__init__(name,
+                         height,
+                         width,
+                         num_actions,
+                         stack_len,
+                         learning_rate)
 
         # Map the network to its network name in the Tensorflow graph
         with tf.variable_scope(self.name):

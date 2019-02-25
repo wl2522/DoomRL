@@ -72,8 +72,8 @@ def get_game_params(game, downscale_ratio):
     return width, height, actions
 
 
-def test_agent(game, model, num_episodes, config, sound=False, visible=True,
-               real_time=True, session=None, model_dir=None):
+def test_agent(game, model, num_episodes, config, stack_len, sound=False,
+               visible=True, real_time=True, session=None, model_dir=None):
     """Test the agent using a currently training or previously trained model.
     Parameters related to model training and game instance settings
     are read from a dictionary.
@@ -99,8 +99,8 @@ def test_agent(game, model, num_episodes, config, sound=False, visible=True,
     width, height, actions = get_game_params(game, config['downscale_ratio'])
 
     for episode in range(num_episodes):
-        # Initialize the queue with 4 empty states
-        queue = deque([list() for i in range(4)], maxlen=4)
+        # Initialize the queue with empty stacks
+        queue = deque([list() for i in range(stack_len)], maxlen=stack_len)
 
         # Generate a new random seed each episode (must be less than 9 digits)
         seed = np.random.randint(999999999)
@@ -116,19 +116,16 @@ def test_agent(game, model, num_episodes, config, sound=False, visible=True,
             # Add extra dimensions to concatenate the stacks of frames
             state_buffer = state_buffer.reshape(1, 1, height, width)
 
-            for i in range(4):
+            for i in range(stack_len):
                 queue[i].append(state_buffer)
 
             # Pop and concatenate the oldest stack of frames
             phi = queue.popleft()
             phi = np.concatenate(phi, axis=1)
 
-            # Add an extra dimension to concatenate the stacks of frames
-            phi = np.expand_dims(phi, axis=0)
-
             # Choose a random action if there are less
-            # than 4 frames in the current state
-            if phi.shape[1] < 4:
+            # than the required number of frames in the current state
+            if phi.shape[1] < stack_len:
                 action = np.random.randint(len(actions))
             else:
                 action = model.choose_action(sess, phi)[0]

@@ -37,6 +37,9 @@ batch_size = config['batch_size']
 
 model_dir = config['model_dir']
 
+# Set to 4 to perform frame stacking or to 1 to train on individual frames
+stack_len = config['frame_stack_len']
+
 # Specify the game scenario and the screen format/resolution
 game = start_game(screen_format=vd.ScreenFormat.BGR24,
                   screen_res=vd.ScreenResolution.RES_640X480,
@@ -52,12 +55,14 @@ target_net = DoubleQNetwork(name='target',
                             learning_rate=config['learning_rate'],
                             height=height,
                             width=width,
-                            num_actions=len(actions))
+                            num_actions=len(actions),
+                            stack_len=stack_len)
 DQN = DoubleQNetwork(name='online',
                      learning_rate=config['learning_rate'],
                      height=height,
                      width=width,
-                     num_actions=len(actions))
+                     num_actions=len(actions),
+                     stack_len=stack_len)
 
 exp_buffer = Buffer(size=config['buffer_size'])
 session = tf.Session()
@@ -86,8 +91,8 @@ for epoch in range(config['epochs']):
     epoch_rewards = list()
     experience = deque(maxlen=2)
 
-    # Initialize the queue with 4 empty states
-    queue = deque([list() for i in range(4)], maxlen=4)
+    # Initialize the queue with empty stacks
+    queue = deque([list() for i in range(stack_len)], maxlen=stack_len)
 
     for step in trange(config['steps_per_epoch'], leave=True):
         state = game.get_state()
@@ -98,7 +103,7 @@ for epoch in range(config['epochs']):
         # Add extra dimensions to concatenate the stacks of frames
         state_buffer = state_buffer.reshape(1, 1, height, width)
 
-        for i in range(4):
+        for i in range(stack_len):
             queue[i].append(state_buffer)
 
         # Pop and concatenate the oldest stack of frames
@@ -108,8 +113,8 @@ for epoch in range(config['epochs']):
         # Explore the environment by choosing random actions
         # with 100% probability for the first phase of training
         # (also choose a random action if there are less
-        # than 4 frames in the current state)
-        if epoch < phase1_len or phi.shape[1] < 4:
+        # frames than the stack length in the current stack)
+        if epoch < phase1_len or phi.shape[1] < stack_len:
             action = np.random.randint(len(actions))
 
         # Increase the probability of greedily choosing an action by a
@@ -134,8 +139,8 @@ for epoch in range(config['epochs']):
                                   config['frame_delay'])
         done = game.is_episode_finished()
 
-        # Ignores the first states that don't contain 4 frames
-        if phi.shape[1] == 4:
+        # Ignores the first stacks that don't contain enough frames
+        if phi.shape[1] == stack_len:
             experience.append(phi)
 
         # Add experiences to the buffer as pairs of consecutive states
@@ -150,9 +155,9 @@ for epoch in range(config['epochs']):
         queue.append(list())
 
         if done:
-            # Add zero arrays to stacks with less than 4 frames
-            if phi.shape[1] < 4:
-                zero_pad_dim = (1, 4 - phi.shape[1], height, width)
+            # Add zero arrays to stacks with less frames than required
+            if phi.shape[1] < stack_len:
+                zero_pad_dim = (1, stack_len - phi.shape[1], height, width)
                 phi = np.concatenate((phi, np.zeros(zero_pad_dim)),
                                      axis=1)
 
@@ -174,8 +179,8 @@ for epoch in range(config['epochs']):
 
             experience = deque(maxlen=2)
 
-            # Initialize the queue with 4 empty states
-            queue = deque([list() for i in range(4)], maxlen=4)
+            # Initialize the queue with empty stacks
+            queue = deque([list() for i in range(stack_len)], maxlen=stack_len)
 
         # Sample a minibatch from the buffer
         # (if there are enough experiences that have been saved already)
@@ -223,6 +228,7 @@ for epoch in range(config['epochs']):
                                  DQN,
                                  num_episodes=20,
                                  config=config,
+                                 stack_len=stack_len,
                                  sound=True,
                                  visible=True,
                                  real_time=True,
