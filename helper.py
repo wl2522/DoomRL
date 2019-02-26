@@ -37,6 +37,9 @@ def preprocess(image, downscale_ratio=1, preserve_range=False):
 
     image = rgb2gray(image)
 
+    # Add extra dimensions to concatenate the stacks of frames on
+    image = image.reshape((1, 1, *image.shape))
+
     return image
 
 

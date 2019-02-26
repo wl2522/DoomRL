@@ -97,9 +97,6 @@ for epoch in range(config['epochs']):
                                   config['downscale_ratio'],
                                   preserve_range=False)
 
-        # Add extra dimensions to concatenate the stacks of frames
-        state_buffer = state_buffer.reshape(1, 1, height, width)
-
         phi = queue.stack_frame(state_buffer)
 
         # Explore the environment by choosing random actions
