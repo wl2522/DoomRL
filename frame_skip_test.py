@@ -23,6 +23,8 @@ def training_iter(game, actions, buffer, steps, stack_len, frame_skip):
         state = game.get_state()
         state_buffer = np.moveaxis(state.screen_buffer, 0, 2)
 
+        # Add an extra dimension to concatenate the frames on
+        state_buffer = state_buffer.reshape((1, 1, *state_buffer.shape))
         phi = queue.stack_frame(state_buffer)
 
         action = np.random.randint(len(actions))
@@ -32,7 +34,6 @@ def training_iter(game, actions, buffer, steps, stack_len, frame_skip):
         done = game.is_episode_finished()
 
         queue.queue_experience(phi, done)
-
         queue.add_to_buffer(buffer, action, reward, done)
 
         if done:
@@ -66,12 +67,13 @@ def main(steps, stack_len, frame_skip, config_file,
 
     # Save each image from the buffer in the order they were inserted in
     if save:
-        for idx, stack in enumerate(buffer.memory):
+        for idx, experience in enumerate(buffer.memory):
             # Read each time step's before and after game state frames
             for state in (0, 3):
                 for image in range(stack_len):
-                    frame = np.squeeze(stack[state][image])
-                    # Label each frame to indicate their relative orders
+                    frame = experience[state][0, image, :, :, :]
+
+                    # Label each state to indicate their relative orders
                     order = int(state == 3)
                     imwrite('{}_{}_{}.jpg'.format(idx, order, image),
                             frame)
