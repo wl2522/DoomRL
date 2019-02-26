@@ -17,7 +17,7 @@ import vizdoom as vd
 from tqdm import trange
 from helper import start_game, get_game_params, preprocess, test_agent
 from q_network import DoubleQNetwork, update_graph, update_target, TBLogger
-from buffer import Buffer
+from buffer import Buffer, FrameQueue
 
 # Decide whether to train a new model or to restore from a checkpoint file
 load_model = False
@@ -89,10 +89,7 @@ with three training phases.
 """
 for epoch in range(config['epochs']):
     epoch_rewards = list()
-    experience = deque(maxlen=2)
-
-    # Initialize the queue with empty stacks
-    queue = deque([list() for i in range(stack_len)], maxlen=stack_len)
+    queue = FrameQueue(stack_len)
 
     for step in trange(config['steps_per_epoch'], leave=True):
         state = game.get_state()
@@ -103,12 +100,7 @@ for epoch in range(config['epochs']):
         # Add extra dimensions to concatenate the stacks of frames
         state_buffer = state_buffer.reshape(1, 1, height, width)
 
-        for i in range(stack_len):
-            queue[i].append(state_buffer)
-
-        # Pop and concatenate the oldest stack of frames
-        phi = queue.popleft()
-        phi = np.concatenate(phi, axis=1)
+        phi = queue.stack_frame(state_buffer)
 
         # Explore the environment by choosing random actions
         # with 100% probability for the first phase of training
@@ -139,36 +131,10 @@ for epoch in range(config['epochs']):
                                   config['frame_delay'])
         done = game.is_episode_finished()
 
-        # Ignores the first stacks that don't contain enough frames
-        if phi.shape[1] == stack_len:
-            experience.append(phi)
-
-        # Add experiences to the buffer as pairs of consecutive states
-        if len(experience) == 2:
-            exp_buffer.add_experience((experience[0],
-                                       action,
-                                       reward,
-                                       experience[1],
-                                       done))
-
-        # Replace the state we just popped with a new one
-        queue.append(list())
+        queue.queue_experience(phi, done)
+        queue.add_to_buffer(exp_buffer, action, reward, done)
 
         if done:
-            # Add zero arrays to stacks with less frames than required
-            if phi.shape[1] < stack_len:
-                zero_pad_dim = (1, stack_len - phi.shape[1], height, width)
-                phi = np.concatenate((phi, np.zeros(zero_pad_dim)),
-                                     axis=1)
-
-            # Reuse the previous state if the episode has finished
-            experience.append(phi)
-            exp_buffer.add_experience((experience[0],
-                                       action,
-                                       reward,
-                                       experience[0],
-                                       done))
-
             epoch_rewards.append(game.get_total_reward())
 
             # Generate a new random seed for each episode
@@ -176,11 +142,7 @@ for epoch in range(config['epochs']):
             seed = np.random.randint(999999999)
             game.set_seed(seed)
             game.new_episode()
-
-            experience = deque(maxlen=2)
-
-            # Initialize the queue with empty stacks
-            queue = deque([list() for i in range(stack_len)], maxlen=stack_len)
+            queue = FrameQueue(stack_len)
 
         # Sample a minibatch from the buffer
         # (if there are enough experiences that have been saved already)

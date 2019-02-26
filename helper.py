@@ -3,12 +3,12 @@ This module contains helper functions that instantiate new game
 instances, downscale game images, and test trained models.
 """
 import time
-from collections import deque
 import numpy as np
 import tensorflow as tf
 import vizdoom as vd
 from skimage.transform import rescale
 from skimage.color import rgb2gray
+from buffer import FrameQueue
 
 
 def preprocess(image, downscale_ratio=1, preserve_range=False):
@@ -99,8 +99,7 @@ def test_agent(game, model, num_episodes, config, stack_len, sound=False,
     width, height, actions = get_game_params(game, config['downscale_ratio'])
 
     for episode in range(num_episodes):
-        # Initialize the queue with empty stacks
-        queue = deque([list() for i in range(stack_len)], maxlen=stack_len)
+        queue = FrameQueue(stack_len)
 
         # Generate a new random seed each episode (must be less than 9 digits)
         seed = np.random.randint(999999999)
@@ -115,13 +114,7 @@ def test_agent(game, model, num_episodes, config, stack_len, sound=False,
 
             # Add extra dimensions to concatenate the stacks of frames
             state_buffer = state_buffer.reshape(1, 1, height, width)
-
-            for i in range(stack_len):
-                queue[i].append(state_buffer)
-
-            # Pop and concatenate the oldest stack of frames
-            phi = queue.popleft()
-            phi = np.concatenate(phi, axis=1)
+            phi = queue.stack_frame(state_buffer)
 
             # Choose a random action if there are less
             # than the required number of frames in the current state
@@ -131,9 +124,6 @@ def test_agent(game, model, num_episodes, config, stack_len, sound=False,
                 action = model.choose_action(sess, phi)[0]
 
             game.make_action(actions[action], config['frame_delay'])
-
-            # Replace the state we just popped with a new one
-            queue.append(list())
 
             # Delay each time step so that games occur at normal speed
             if real_time:
