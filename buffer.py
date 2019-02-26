@@ -113,16 +113,8 @@ class FrameQueue:
         the episode finished indicator variable.
         """
         if len(self.experience_queue) == 2:
-            if not done:
-                buffer.add_experience((self.experience_queue[0],
-                                       action,
-                                       reward,
-                                       self.experience_queue[1],
-                                       done))
-            else:
-                # Reuse the previous state if the episode has finished
-                buffer.add_experience((self.experience_queue[0],
-                                       action,
-                                       reward,
-                                       self.experience_queue[0],
-                                       done))
+            buffer.add_experience((self.experience_queue[0],
+                                   action,
+                                   reward,
+                                   self.experience_queue[1],
+                                   done))
