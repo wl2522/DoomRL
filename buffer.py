@@ -96,7 +96,7 @@ class FrameQueue:
         with zero arrays until the sufficient stack length is reached.
         """
         if not done:
-            if len(stack) == self.stack_len:
+            if stack.shape[1] == self.stack_len:
                 self.experience_queue.append(stack)
         else:
             if stack.shape[1] < self.stack_len:
