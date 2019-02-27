@@ -40,6 +40,86 @@ class BaseNetwork:
         return self.learn_rate
 
 
+class QNetwork(BaseNetwork):
+    """Create a Q-network to estimate expected values and choose
+    actions for a given state.
+    """
+    def __init__(self, name, height, width, num_actions, stack_len=4,
+                 learning_rate=0.001):
+        super().__init__(name,
+                         height,
+                         width,
+                         num_actions,
+                         stack_len,
+                         learning_rate)
+
+        # Map the network to its network name in the Tensorflow graph
+        with tf.variable_scope(self.name):
+            self.conv1 = tf.layers.conv2d(inputs=self.s_t,
+                                          filters=32,
+                                          kernel_size=[8, 8],
+                                          strides=[4, 4],
+                                          padding='valid',
+                                          data_format='channels_first',
+                                          activation=tf.nn.relu,
+                                          name=self.name + '_conv1_layer'
+                                          )
+            self.conv2 = tf.layers.conv2d(inputs=self.conv1,
+                                          filters=64,
+                                          kernel_size=[4, 4],
+                                          strides=[2, 2],
+                                          padding='valid',
+                                          activation=tf.nn.relu,
+                                          name=self.name + '_conv2_layer'
+                                          )
+            self.flatten = tf.layers.flatten(inputs=self.conv2,
+                                             name=self.name + '_flatten'
+                                             )
+            self.dense = tf.layers.dense(inputs=self.flatten,
+                                         units=512,
+                                         activation=tf.nn.relu,
+                                         name=self.name + '_dense1_layer'
+                                         )
+            self.Q_values = tf.layers.dense(inputs=self.dense,
+                                            units=self.num_actions,
+                                            activation=None,
+                                            name=self.name + '_output_layer'
+                                            )
+
+            self.best_action = tf.argmax(self.Q_values, 1)
+            self.loss = tf.losses.mean_squared_error(self.Q_values,
+                                                     self.Q_target)
+            self.adam = tf.train.AdamOptimizer(learning_rate=self.learn_rate,
+                                               name=self.name + '_adam'
+                                               )
+            self.train = self.adam.minimize(self.loss)
+
+    def calculate_loss(self, session, s, q):
+        """Compute the mean squared error for state s and apply the gradients.
+        """
+        L, _ = session.run([self.loss, self.train],
+                           feed_dict={self.s_t: s,
+                                      self.Q_target: q})
+
+        return L
+
+    def get_Q_values(self, session, s):
+        """Return the array of Q-values associated with a given state.
+        """
+        Q = session.run(self.Q_values,
+                        feed_dict={self.s_t: s})
+
+        return Q
+
+    def choose_action(self, session, s):
+        """Return the best action based on the a given state.
+        """
+        a = session.run(self.best_action,
+                        feed_dict={self.s_t: s})
+
+        return a
+
+
 class DoubleQNetwork(BaseNetwork):
     """Create a deep Q-network with 3 convolutional layers. Two of these
     should be instantiated: one to estimate expected values and one to
@@ -81,7 +161,7 @@ class DoubleQNetwork(BaseNetwork):
                                           activation=tf.nn.relu,
                                           name=self.name + 'conv3_layer'
                                           )
-            self.flatten = tf.layers.flatten(self.conv3,
+            self.flatten = tf.layers.flatten(inputs=self.conv3,
                                              name=self.name + '_flatten'
                                              )
             self.dense = tf.layers.dense(inputs=self.flatten,
