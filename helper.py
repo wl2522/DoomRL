@@ -75,6 +75,18 @@ def get_game_params(game, downscale_ratio):
     return width, height, actions
 
 
+def start_new_episode(game):
+    """Randomly generate a number, set it as the
+    random seed within the game instance, and start a
+    new episode.
+    The generated number can be at most 9 digits since trying to
+    set a 10 digit random seed will cause an error in ViZDoom.
+    """
+    seed = np.random.randint(999999999)
+    game.set_seed(seed)
+    game.new_episode()
+
+
 def test_agent(game, model, num_episodes, config, stack_len, sound=False,
                visible=True, real_time=True, session=None, model_dir=None):
     """Test the agent using a currently training or previously trained model.
@@ -103,11 +115,7 @@ def test_agent(game, model, num_episodes, config, stack_len, sound=False,
 
     for episode in range(num_episodes):
         queue = FrameQueue(stack_len)
-
-        # Generate a new random seed each episode (must be less than 9 digits)
-        seed = np.random.randint(999999999)
-        game.set_seed(seed)
-        game.new_episode()
+        start_new_episode(game)
 
         while not game.is_episode_finished():
             state = game.get_state()

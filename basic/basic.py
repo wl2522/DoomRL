@@ -14,9 +14,10 @@ import tensorflow as tf
 import numpy as np
 import vizdoom as vd
 from tqdm import trange
-from helper import start_game, get_game_params, preprocess, test_agent
 from q_network import QNetwork, update_graph, update_target, TBLogger
 from buffer import Buffer, FrameQueue
+from helper import (start_game, get_game_params, preprocess, start_new_episode,
+                    test_agent)
 
 # Decide whether to train a new model or to restore from a checkpoint file
 load_model = False
@@ -133,12 +134,7 @@ for epoch in range(config['epochs']):
         if done:
             epoch_rewards.append(game.get_total_reward())
 
-            # Generate a new random seed for each episode
-            # (must be less than 9 digits)
-            seed = np.random.randint(999999999)
-            game.set_seed(seed)
-            game.new_episode()
-            queue = FrameQueue(stack_len)
+            start_new_episode(game)
 
         # Sample a minibatch from the buffer
         # (if there are enough experiences that have been saved already)
