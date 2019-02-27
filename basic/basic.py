@@ -9,14 +9,13 @@ For each time step, collect the following data:
         (store the first game state if the previous action ends the episode)
     5. A variable indicating whether the episode is over yet
 """
-from collections import deque
 import yaml
 import tensorflow as tf
 import numpy as np
 import vizdoom as vd
 from tqdm import trange
 from helper import start_game, get_game_params, preprocess, test_agent
-from q_network import DoubleQNetwork, update_graph, update_target, TBLogger
+from q_network import QNetwork, update_graph, update_target, TBLogger
 from buffer import Buffer, FrameQueue
 
 # Decide whether to train a new model or to restore from a checkpoint file
@@ -51,18 +50,18 @@ width, height, actions = get_game_params(game, config['downscale_ratio'])
 
 tf.reset_default_graph()
 
-target_net = DoubleQNetwork(name='target',
-                            learning_rate=config['learning_rate'],
-                            height=height,
-                            width=width,
-                            num_actions=len(actions),
-                            stack_len=stack_len)
-DQN = DoubleQNetwork(name='online',
-                     learning_rate=config['learning_rate'],
-                     height=height,
-                     width=width,
-                     num_actions=len(actions),
-                     stack_len=stack_len)
+target_net = QNetwork(name='target',
+                      learning_rate=config['learning_rate'],
+                      height=height,
+                      width=width,
+                      num_actions=len(actions),
+                      stack_len=stack_len)
+DQN = QNetwork(name='online',
+               learning_rate=config['learning_rate'],
+               height=height,
+               width=width,
+               num_actions=len(actions),
+               stack_len=stack_len)
 
 exp_buffer = Buffer(size=config['buffer_size'])
 session = tf.Session()
@@ -176,7 +175,7 @@ for epoch in range(config['epochs']):
     update_target(update_ops, session)
 
     # Save the model and test the agent for 20 episodes every 20 epochs
-    if (epoch + 1) % 20 == 0 and epoch > 0:
+    if (epoch + 1) % config['epochs'] == 0 and epoch > 0:
         if save_model:
             checkpoint = model_dir + '-' + str(epoch + 1)
             print('Epoch {} Model saved to {}'.format(epoch + 1, model_dir))
