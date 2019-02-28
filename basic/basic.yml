@@ -11,8 +11,7 @@ phase2_ratio: 0.9
 steps_per_epoch: 2000
 learning_rate: 0.001
 gamma: 0
-start_epsilon: 1.0
-end_epsilon: 0.1
+epsilon_range: (1.0, 0.1)
 batch_size: 100
 model_dir: './checkpoints/take_cover.ckpt'
 log_dir: './tensorboard'

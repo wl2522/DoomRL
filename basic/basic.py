@@ -31,8 +31,7 @@ phase1_len = config['phase1_ratio']*config['epochs']
 phase2_len = config['phase2_ratio']*config['epochs']
 
 gamma = config['gamma']
-start_epsilon = config['start_epsilon']
-end_epsilon = config['end_epsilon']
+epsilon_range = config['epsilon_range']
 batch_size = config['batch_size']
 
 model_dir = config['model_dir']
@@ -103,10 +102,8 @@ for epoch in range(config['epochs']):
         choose_random = epsilon_greedy(epoch,
                                        frame,
                                        stack_len,
-                                       phase_lens=(phase1_len,
-                                                   phase2_len),
-                                       epsilon_range=(start_epsilon,
-                                                      end_epsilon))
+                                       phase_lens=(phase1_len, phase2_len),
+                                       epsilon_range=epsilon_range)
         if choose_random:
             action = np.random.randint(len(actions))
         else:
