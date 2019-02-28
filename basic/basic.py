@@ -31,7 +31,7 @@ phase1_len = config['phase1_ratio']*config['epochs']
 phase2_len = config['phase2_ratio']*config['epochs']
 
 gamma = config['gamma']
-epsilon_range = config['epsilon_range']
+epsilon_range = (config['start_epsilon'], config['end_epsilon'])
 batch_size = config['batch_size']
 
 model_dir = config['model_dir']
