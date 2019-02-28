@@ -10,7 +10,8 @@ phase1_ratio: 0.2
 phase2_ratio: 0.9
 steps_per_epoch: 2000
 learning_rate: 0.001
-gamma: 0
+decay_lr = False
+gamma: 0.99
 start_epsilon: 1.0
 end_epsilon: 0.1
 batch_size: 100

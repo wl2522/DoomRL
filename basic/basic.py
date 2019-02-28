@@ -148,8 +148,9 @@ for epoch in range(config['epochs']):
             gamma = 0.99
 
     # Decrease the learning rate at each epoch
-    DQN.update_lr()
-    target_net.update_lr()
+    if config['decay_lr']:
+        DQN.update_lr()
+        target_net.update_lr()
 
     print('Epoch {} Mean Reward: {}'.format(epoch + 1, np.mean(epoch_rewards)))
 
