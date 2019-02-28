@@ -44,7 +44,7 @@ class QNetwork(BaseNetwork):
     """Create a Q-network to estimate expected values and choose
     actions for a given state.
     """
-    def __init__(self, name, height, width, num_actions, stack_len=4,
+    def __init__(self, name, height, width, num_actions, stack_len=1,
                  learning_rate=0.001):
         super().__init__(name,
                          height,
