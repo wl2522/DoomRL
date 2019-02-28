@@ -33,13 +33,6 @@ class BaseNetwork:
                                            name=self.name + '_Q_target'
                                            )
 
-    def update_lr(self):
-        """Reduce the learning rate of the Q-Network by 2%.
-        """
-        self.learn_rate = 0.98*self.learn_rate
-
-        return self.learn_rate
-
 
 class QNetwork(BaseNetwork):
     """Create a Q-network to estimate expected values and choose

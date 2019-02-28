@@ -145,10 +145,6 @@ for epoch in range(config['epochs']):
     elif gamma >= 0.99:
         gamma = 0.99
 
-    # Decrease the learning rate at each epoch
-    DQN.update_lr()
-    target_net.update_lr()
-
     print('Epoch {} Mean Reward: {}'.format(epoch + 1, np.mean(epoch_rewards)))
 
     # Update the target network after every epoch
