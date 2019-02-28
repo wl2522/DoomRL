@@ -30,6 +30,7 @@ with open('basic/basic.yml') as config_file:
 phase1_len = config['phase1_ratio']*config['epochs']
 phase2_len = config['phase2_ratio']*config['epochs']
 
+# Use an increasing discount factor if gamma = 0 or a constant one otherwise
 gamma = config['gamma']
 epsilon_range = (config['start_epsilon'], config['end_epsilon'])
 batch_size = config['batch_size']
@@ -140,10 +141,11 @@ for epoch in range(config['epochs']):
             logger.write_log(session, DQN, s1, Q2, episode)
 
     # Increase the discount factor at each epoch until it reaches 0.99
-    if gamma < 0.99:
-        gamma = 1-.98*(1-gamma)
-    elif gamma >= 0.99:
-        gamma = 0.99
+    if config['gamma'] == 0:
+        if gamma < 0.99:
+            gamma = 1-.98*(1-gamma)
+        elif gamma >= 0.99:
+            gamma = 0.99
 
     print('Epoch {} Mean Reward: {}'.format(epoch + 1, np.mean(epoch_rewards)))
 
