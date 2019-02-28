@@ -14,7 +14,7 @@ import tensorflow as tf
 import numpy as np
 import vizdoom as vd
 from tqdm import trange
-from q_network import QNetwork, update_graph, update_target, TBLogger
+from q_network import QNetwork, update_graph, update_target, TBLogger, epsilon_greedy
 from buffer import Buffer, FrameQueue
 from helper import (start_game, get_game_params, preprocess, start_new_episode,
                     test_agent)
@@ -97,43 +97,30 @@ for epoch in range(config['epochs']):
                                   config['downscale_ratio'],
                                   preserve_range=False)
 
-        phi = queue.stack_frame(state_buffer)
+        frame = queue.stack_frame(state_buffer)
 
-        # Explore the environment by choosing random actions
-        # with 100% probability for the first phase of training
-        # (also choose a random action if there are less
-        # frames than the stack length in the current stack)
-        if epoch < phase1_len or phi.shape[1] < stack_len:
+        # Decide whether the next action will be random or not
+        choose_random = epsilon_greedy(epoch,
+                                       frame,
+                                       stack_len,
+                                       phase_lens=(phase1_len,
+                                                   phase2_len),
+                                       epsilon_range=(start_epsilon,
+                                                      end_epsilon))
+        if choose_random:
             action = np.random.randint(len(actions))
-
-        # Increase the probability of greedily choosing an action by a
-        # constant amount at each epoch in the second phase
-        elif epoch < phase2_len:
-            epsilon = start_epsilon - (epoch + 1 - phase1_len)*(start_epsilon - end_epsilon)/(phase2_len - phase1_len)
-
-            if np.random.uniform(0, 1) <= epsilon:
-                action = np.random.randint(len(actions))
-            else:
-                action = DQN.choose_action(session, phi)[0]
-
-        # Select a random action with 10% probability in
-        # the final phase of training
         else:
-            if np.random.uniform(0, 1) <= end_epsilon:
-                action = np.random.randint(len(actions))
-            else:
-                action = DQN.choose_action(session, phi)[0]
+            action = DQN.choose_action(session, frame)[0]
 
         reward = game.make_action(actions[action],
                                   config['frame_delay'])
         done = game.is_episode_finished()
 
-        queue.queue_experience(phi, done)
+        queue.queue_experience(frame, done)
         queue.add_to_buffer(exp_buffer, action, reward, done)
 
         if done:
             epoch_rewards.append(game.get_total_reward())
-
             start_new_episode(game)
 
         # Sample a minibatch from the buffer

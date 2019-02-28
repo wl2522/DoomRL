@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 
 class BaseNetwork:
@@ -207,6 +208,54 @@ class DoubleQNetwork(BaseNetwork):
                         feed_dict={self.s_t: s})
 
         return a
+
+
+def epsilon_greedy(epoch, frame, stack_len, phase_lens, epsilon_range):
+    """Implement an epsilon-greedy strategy that decides whether
+    an agent performs a random action (with probability epsilon) or
+    choose an action greedily.
+    """
+    def epsilon_decay(epoch, phase_lens, epsilon_range):
+        """Update the value of epsilon based on the current epoch number,
+        the provided range of epsilon values, and the exploration scheduled
+        defined by a tuple.
+        Epsilon is the parameter that determines the probability of
+        the agent performing a random action instead of deciding on
+        an action using a greedy strategy.
+
+        At each epoch between the exploration phase and final phase,
+        epsilon linearly decreases between the given range of epsilon values.
+        """
+        # Indicate how many times epsilon has been updated so far
+        update_step = epoch + 1 - phase_lens[0]
+
+        # Calculate how much epsilon should decrease by at each update step
+        decay_factor = (epsilon_range[0] - epsilon_range[1]) /    \
+                       (phase_lens[1] - phase_lens[0])
+        epsilon = epsilon_range[0] - update_step*decay_factor
+
+        return epsilon
+
+    epsilon = epsilon_decay(epoch, phase_lens, epsilon_range)
+
+    # Explore the environment by choosing random actions
+    # with 100% probability for the first phase of training
+    # (also choose a random action if there are less
+    # frames than the stack length in the current stack)
+    if epoch < phase_lens[0] or frame.shape[1] < stack_len:
+        random_action = True
+
+    # Increase the probability of greedily choosing an action by a
+    # constant amount at each epoch in the second phase
+    elif epoch < phase_lens[1]:
+        random_action = bool(np.random.uniform(0, 1) <= epsilon)
+
+    # Select a random action with 10% probability in
+    # the final phase of training
+    else:
+        random_action = bool(np.random.uniform(0, 1) <= epsilon_range[1])
+
+    return random_action
 
 
 def update_graph(from_network_name, to_network_name):
