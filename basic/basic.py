@@ -19,6 +19,7 @@ from buffer import Buffer, FrameQueue
 from helper import (start_game, get_game_params, preprocess, start_new_episode,
                     test_agent)
 
+
 # Decide whether to train a new model or to restore from a checkpoint file
 load_model = False
 save_model = False
@@ -26,9 +27,9 @@ save_model = False
 with open('basic/basic.yml') as config_file:
     config = yaml.load(config_file)
 
-# Rename some of the parameters with with shorter anmes
-phase1_len = config['phase1_ratio']*config['epochs']
-phase2_len = config['phase2_ratio']*config['epochs']
+# Rename some of the parameters with with shorter names
+phase_lens = (config['phase1_ratio']*config['epochs'],
+              config['phase2_ratio']*config['epochs'])
 
 # Use an increasing discount factor if gamma = 0 or a constant one otherwise
 gamma = config['gamma']
@@ -103,7 +104,7 @@ for epoch in range(config['epochs']):
         choose_random = epsilon_greedy(epoch,
                                        frame,
                                        stack_len,
-                                       phase_lens=(phase1_len, phase2_len),
+                                       phase_lens=phase_lens,
                                        epsilon_range=epsilon_range)
         if choose_random:
             action = np.random.randint(len(actions))
