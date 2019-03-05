@@ -1,13 +1,5 @@
 """
-Training script for the take_cover.wad scenario.
-
-For each time step, collect the following data:
-    1. The current game state
-    2. The action that was taken taken
-    3. The reward obtained from the chosen action
-    4. The next game state
-        (store the first game state if the previous action ends the episode)
-    5. A variable indicating whether the episode is over yet
+Deep Q-Network training script for the basic.wad scenario.
 """
 import yaml
 import tensorflow as tf
@@ -18,6 +10,60 @@ from q_network import QNetwork, update_graph, update_target, epsilon_greedy
 from buffer import Buffer, FrameQueue
 from helper import (start_game, get_game_params, preprocess, start_new_episode,
                     test_agent)
+
+
+def explore(doom_game, model, frame_queue, buffer, params, phases, epoch_num):
+    """For each time step, collect the following data:
+    1. The current game state
+    2. The action that was taken taken
+    3. The reward obtained from the chosen action
+    4. The next game state
+        (store the first game state if the previous action ends the episode)
+    5. A variable indicating whether the episode is over yet
+    """
+    state = doom_game.get_state()
+    state_buffer = preprocess(state.screen_buffer,
+                              params['downscale_ratio'],
+                              preserve_range=False)
+
+    frame = frame_queue.stack_frame(state_buffer)
+
+    # Decide whether the next action will be random or not
+    choose_random = epsilon_greedy(epoch_num,
+                                   frame,
+                                   stack_len,
+                                   phase_lens=phases,
+                                   epsilon_range=epsilon_range)
+    if choose_random:
+        action = np.random.randint(len(actions))
+    else:
+        action = model.choose_action(session, frame)[0]
+
+    reward = doom_game.make_action(actions[action],
+                                   params['frame_delay'])
+    is_done = doom_game.is_episode_finished()
+
+    frame_queue.queue_experience(frame, is_done)
+    frame_queue.add_to_buffer(buffer, action, reward, is_done)
+
+    return is_done
+
+
+def train(sess, online, target, buffer, batch):
+    """Randomly sample a minibatch of experiences without
+    replacement and perform gradient descent to train the agent.
+    """
+    if buffer.length > batch_size:
+        s1, a, r, s2, terminal = buffer.sample_buffer(batch)
+
+        # Get the target values from the target Q-network
+        target_Q = np.max(target.get_Q_values(sess, s2), axis=1)
+
+        # Train the online Q-network by using a minibatch to
+        # update the action-value function
+        Q2 = online.get_Q_values(session, s1)
+        Q2[np.arange(batch_size), a] = r + gamma*(1 - terminal)*target_Q
+        online.calculate_loss(session, s1, Q2)
 
 
 # Decide whether to train a new model or to restore from a checkpoint file
@@ -84,54 +130,27 @@ epoch_rank = list()
 
 """Accumulate experiences in the buffer using an epsilon-greedy strategy
 with three training phases.
+
+At each time step during an episode, explore the environment
+by collecting experiences and adding them to the memory buffer.
 """
 for epoch in range(config['epochs']):
     epoch_rewards = list()
     queue = FrameQueue(stack_len)
 
     for step in trange(config['steps_per_epoch'], leave=True):
-        state = game.get_state()
-        state_buffer = preprocess(state.screen_buffer,
-                                  config['downscale_ratio'],
-                                  preserve_range=False)
-
-        frame = queue.stack_frame(state_buffer)
-
-        # Decide whether the next action will be random or not
-        choose_random = epsilon_greedy(epoch,
-                                       frame,
-                                       stack_len,
-                                       phase_lens=phase_lens,
-                                       epsilon_range=epsilon_range)
-        if choose_random:
-            action = np.random.randint(len(actions))
-        else:
-            action = DQN.choose_action(session, frame)[0]
-
-        reward = game.make_action(actions[action],
-                                  config['frame_delay'])
-        done = game.is_episode_finished()
-
-        queue.queue_experience(frame, done)
-        queue.add_to_buffer(exp_buffer, action, reward, done)
-
+        done = explore(game,
+                       DQN,
+                       queue,
+                       exp_buffer,
+                       config,
+                       phase_lens,
+                       epoch)
         if done:
             epoch_rewards.append(game.get_total_reward())
             start_new_episode(game)
 
-        # Sample a minibatch from the buffer
-        # (if there are enough experiences that have been saved already)
-        if exp_buffer.length > batch_size:
-            s1, a, r, s2, terminal = exp_buffer.sample_buffer(batch_size)
-
-            # Get the target values from the target Q-network
-            target_Q = np.max(target_net.get_Q_values(session, s2), axis=1)
-
-            # Train the online Q-network by using a minibatch to
-            # update the action-value function
-            Q2 = DQN.get_Q_values(session, s1)
-            Q2[np.arange(batch_size), a] = r + gamma*(1 - terminal)*target_Q
-            DQN.calculate_loss(session, s1, Q2)
+        train(session, DQN, target_net, exp_buffer, batch_size)
 
     # Increase the discount factor at each epoch until it reaches 0.99
     if config['gamma'] == 0:
