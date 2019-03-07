@@ -162,9 +162,10 @@ for epoch in range(config['epochs']):
     # Decrease the learning rate at each epoch
     if config['decay_lr']:
         DQN.update_lr()
-        target_net.update_lr()
 
     print('Epoch {} Mean Reward: {}'.format(epoch + 1, np.mean(epoch_rewards)))
+    print('Epoch {} Min Reward: {}'.format(epoch + 1, np.min(epoch_rewards)))
+    print('Epoch {} Max Reward: {}'.format(epoch + 1, np.max(epoch_rewards)))
 
     # Update the target network after every epoch
     update_target(update_ops, session)
