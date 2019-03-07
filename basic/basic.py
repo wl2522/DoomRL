@@ -49,21 +49,19 @@ def explore(doom_game, model, frame_queue, buffer, params, phases, epoch_num):
     return is_done
 
 
-def train(sess, online, target, buffer, batch):
+def train(sess, model, buffer, batch):
     """Randomly sample a minibatch of experiences without
     replacement and perform gradient descent to train the agent.
     """
     if buffer.length > batch_size:
         s1, a, r, s2, terminal = buffer.sample_buffer(batch)
 
-        # Get the target values from the target Q-network
-        target_Q = np.max(target.get_Q_values(sess, s2), axis=1)
-
         # Train the online Q-network by using a minibatch to
         # update the action-value function
-        Q2 = online.get_Q_values(session, s1)
-        Q2[np.arange(batch_size), a] = r + gamma*(1 - terminal)*target_Q
-        online.calculate_loss(session, s1, Q2)
+        Q2 = np.max(model.get_Q_values(sess, s2), axis=1)
+        target_Q = model.get_Q_values(session, s1)
+        target_Q[np.arange(batch_size), a] = r + gamma*(1 - terminal)*Q2
+        model.calculate_loss(session, s1, target_Q)
 
 
 # Decide whether to train a new model or to restore from a checkpoint file
@@ -98,12 +96,6 @@ width, height, actions = get_game_params(game, config['downscale_ratio'])
 
 tf.reset_default_graph()
 
-target_net = QNetwork(name='target',
-                      learning_rate=config['learning_rate'],
-                      height=height,
-                      width=width,
-                      num_actions=len(actions),
-                      stack_len=stack_len)
 DQN = QNetwork(name='online',
                learning_rate=config['learning_rate'],
                height=height,
@@ -150,7 +142,7 @@ for epoch in range(config['epochs']):
             epoch_rewards.append(game.get_total_reward())
             start_new_episode(game)
 
-        train(session, DQN, target_net, exp_buffer, batch_size)
+        train(session, DQN, exp_buffer, batch_size)
 
     # Increase the discount factor at each epoch until it reaches 0.99
     if config['gamma'] == 0:
