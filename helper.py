@@ -88,20 +88,11 @@ def start_new_episode(game):
 
 
 def test_agent(game, model, num_episodes, config, stack_len, sound=False,
-               visible=True, real_time=True, session=None, model_dir=None):
+               visible=True, real_time=True, model_dir=None):
     """Test the agent using a currently training or previously trained model.
     Parameters related to model training and game instance settings
     are read from a dictionary.
     """
-    if model_dir is None:
-        sess = tf.Session()
-        print('Loading model from', model_dir)
-        tf.train.Saver().restore(sess, model_dir)
-
-    # Require an existing session if a pretrained model isn't provided
-    else:
-        sess = session
-
     # Initiate a new game if the sound or visible parameters
     # differ from what's in the config dictionary
     if sound != config['enable_sound'] or visible != config['window_visible']:
@@ -132,7 +123,7 @@ def test_agent(game, model, num_episodes, config, stack_len, sound=False,
             if phi.shape[1] < stack_len:
                 action = np.random.randint(len(actions))
             else:
-                action = model.choose_action(sess, phi)[0]
+                action = model.choose_action(phi)[0]
 
             game.make_action(actions[action], config['frame_delay'])
 

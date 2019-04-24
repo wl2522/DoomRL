@@ -2,11 +2,11 @@
 Deep Q-Network training script for the basic.wad scenario.
 """
 import yaml
-import tensorflow as tf
+import torch
 import numpy as np
 import vizdoom as vd
 from tqdm import trange
-from q_network import QNetwork, update_graph, update_target, epsilon_greedy
+from q_network import QNetwork, update_target, epsilon_greedy
 from buffer import Buffer, FrameQueue
 from helper import (start_game, get_game_params, preprocess, start_new_episode,
                     test_agent)
@@ -37,7 +37,7 @@ def explore(doom_game, model, frame_queue, buffer, params, phases, epoch_num):
     if choose_random:
         action = np.random.randint(len(actions))
     else:
-        action = model.choose_action(session, frame)[0]
+        action = model.choose_action(frame)[0]
 
     reward = doom_game.make_action(actions[action],
                                    params['frame_delay'])
@@ -58,10 +58,10 @@ def train(sess, model, buffer, batch):
 
         # Train the online Q-network by using a minibatch to
         # update the action-value function
-        Q2 = np.max(model.get_Q_values(sess, s2), axis=1)
-        target_Q = model.get_Q_values(session, s1)
+        Q2 = np.max(model.get_Q_values(s2), axis=1)
+        target_Q = model.get_Q_values(s1)
         target_Q[np.arange(batch_size), a] = r + gamma*(1 - terminal)*Q2
-        model.calculate_loss(session, s1, target_Q)
+        model.calculate_loss(s1, target_Q)
 
 
 # Decide whether to train a new model or to restore from a checkpoint file
@@ -94,27 +94,27 @@ game = start_game(screen_format=vd.ScreenFormat.BGR24,
 
 width, height, actions = get_game_params(game, config['downscale_ratio'])
 
-tf.reset_default_graph()
+device = torch.device('cuda')
 
 DQN = QNetwork(name='online',
                learning_rate=config['learning_rate'],
                height=height,
                width=width,
                num_actions=len(actions),
-               stack_len=stack_len)
+               stack_len=stack_len).to(device)
 
 exp_buffer = Buffer(size=config['buffer_size'])
-session = tf.Session()
-saver = tf.train.Saver(max_to_keep=config['num_ckpts'], reshape=True)
-
-update_ops = update_graph('online', 'target')
-
-if load_model:
-    print('Loading model from', model_dir)
-    tf.train.Saver().restore(session, model_dir)
-
-elif not load_model:
-    session.run(tf.global_variables_initializer())
+#session = tf.Session()
+#saver = tf.train.Saver(max_to_keep=config['num_ckpts'], reshape=True)
+#
+#update_ops = update_graph('online', 'target')
+#
+#if load_model:
+#    print('Loading model from', model_dir)
+#    tf.train.Saver().restore(session, model_dir)
+#
+#elif not load_model:
+#    session.run(tf.global_variables_initializer())
 
 game.init()
 
@@ -142,7 +142,7 @@ for epoch in range(config['epochs']):
             epoch_rewards.append(game.get_total_reward())
             start_new_episode(game)
 
-        train(session, DQN, exp_buffer, batch_size)
+        train(DQN, exp_buffer, batch_size)
 
     # Increase the discount factor at each epoch until it reaches 0.99
     if config['gamma'] == 0:
@@ -159,15 +159,12 @@ for epoch in range(config['epochs']):
     print('Epoch {} Min Reward: {}'.format(epoch + 1, np.min(epoch_rewards)))
     print('Epoch {} Max Reward: {}'.format(epoch + 1, np.max(epoch_rewards)))
 
-    # Update the target network after every epoch
-    update_target(update_ops, session)
-
-    # Save the model and test the agent for 20 episodes every 20 epochs
-    if (epoch + 1) % config['epochs'] == 0 and epoch > 0:
-        if save_model:
-            checkpoint = model_dir + '-' + str(epoch + 1)
-            print('Epoch {} Model saved to {}'.format(epoch + 1, model_dir))
-            saver.save(session, model_dir, global_step=epoch + 1)
+#    # Save the model and test the agent for 20 episodes every 20 epochs
+#    if (epoch + 1) % config['epochs'] == 0 and epoch > 0:
+#        if save_model:
+#            checkpoint = model_dir + '-' + str(epoch + 1)
+#            print('Epoch {} Model saved to {}'.format(epoch + 1, model_dir))
+#            saver.save(session, model_dir, global_step=epoch + 1)
 
         print('Epoch {} test:'.format(epoch + 1))
         test_reward = test_agent(game,
@@ -178,7 +175,6 @@ for epoch in range(config['epochs']):
                                  sound=False,
                                  visible=False,
                                  real_time=True,
-                                 session=session,
                                  model_dir=model_dir)
         print('Epoch {} Average Test Reward: {}'.format(epoch + 1,
                                                         test_reward))

@@ -1,8 +1,10 @@
-import tensorflow as tf
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 
 
-class BaseNetwork:
+class BaseNetwork(nn.Module):
     """A base class that has attributes and functions that are needed by
     all of the Deep Q-networks.
     """
@@ -13,25 +15,22 @@ class BaseNetwork:
         self.width = width
         self.stack_len = stack_len
         self.num_actions = num_actions
+        self.learn_rate = learning_rate
 
-        # Map the network to its network name in the Tensorflow graph
-        with tf.variable_scope(name):
-            self.learn_rate = learning_rate
-            self.s_t = tf.placeholder(tf.float32,
-                                      shape=[None,
-                                             stack_len,
-                                             self.height,
-                                             self.width],
-                                      name=self.name + '_state'
-                                      )
-            self.a_t = tf.placeholder(tf.int32,
-                                      shape=[None],
-                                      name=self.name + '_action'
-                                      )
-            self.Q_target = tf.placeholder(tf.float32,
-                                           shape=[None, self.num_actions],
-                                           name=self.name + '_Q_target'
-                                           )
+    def calculate_loss(q_values, q_targets):
+        """Compute the mean squared error for state s and apply the gradients.
+        """
+        MSE = nn.MSELoss()
+        RMSE = torch.sqrt(MSE(q_values, q_targets))
+
+        return RMSE
+
+    def choose_action(q_values):
+        """Return the best action based on the a given state.
+        """
+        a = torch.argmax(q_values, 1)
+
+        return a
 
     def update_lr(self):
         """Reduce the learning rate of the Q-Network by 2%.
@@ -54,71 +53,35 @@ class QNetwork(BaseNetwork):
                          stack_len,
                          learning_rate)
 
-        # Map the network to its network name in the Tensorflow graph
-        with tf.variable_scope(self.name):
-            self.conv1 = tf.layers.conv2d(inputs=self.s_t,
-                                          filters=32,
-                                          kernel_size=[8, 8],
-                                          strides=[4, 4],
-                                          padding='valid',
-                                          data_format='channels_first',
-                                          activation=tf.nn.relu,
-                                          name=self.name + '_conv1_layer'
-                                          )
-            self.conv2 = tf.layers.conv2d(inputs=self.conv1,
-                                          filters=64,
-                                          kernel_size=[4, 4],
-                                          strides=[2, 2],
-                                          padding='valid',
-                                          activation=tf.nn.relu,
-                                          name=self.name + '_conv2_layer'
-                                          )
-            self.flatten = tf.layers.flatten(inputs=self.conv2,
-                                             name=self.name + '_flatten'
-                                             )
-            self.dense = tf.layers.dense(inputs=self.flatten,
-                                         units=512,
-                                         activation=tf.nn.relu,
-                                         name=self.name + '_dense1_layer'
-                                         )
-            self.Q_values = tf.layers.dense(inputs=self.dense,
-                                            units=self.num_actions,
-                                            activation=None,
-                                            name=self.name + '_output_layer'
-                                            )
+        self.conv1 = nn.Conv2d(in_channels=stack_len,
+                               out_channel=32,
+                               kernel_size=8,
+                               strides=4,
+                               padding=0
+                               )
+        self.conv2 = nn.Conv2d(in_channels=32,
+                               out_channel=64,
+                               kernel_size=4,
+                               strides=2,
+                               padding=0
+                               )
+        self.dense = nn.Linear(in_features=64,
+                               out_features=512)
+        self.Q_values = nn.Linear(in_features=512,
+                                  out_features=self.num_actions)
 
-            self.best_action = tf.argmax(self.Q_values, 1)
-            self.loss = tf.losses.mean_squared_error(self.Q_values,
-                                                     self.Q_target)
-            self.adam = tf.train.AdamOptimizer(learning_rate=self.learn_rate,
-                                               name=self.name + '_adam'
-                                               )
-            self.train = self.adam.minimize(self.loss)
+        self.adam = nn.optim.Adam(lr=self.learn_rate)
 
-    def calculate_loss(self, session, s, q):
-        """Compute the mean squared error for state s and apply the gradients.
-        """
-        L, _ = session.run([self.loss, self.train],
-                           feed_dict={self.s_t: s,
-                                      self.Q_target: q})
-
-        return L
-
-    def get_Q_values(self, session, s):
+    def forward(self, x):
         """Return the array of Q-values associated with a given state.
         """
-        Q = session.run(self.Q_values,
-                        feed_dict={self.s_t: s})
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = x.view(x.shape[0], -1)
+        x = F.relu(self.dense(x))
+        x = self.Q_values(x)
 
-        return Q
-
-    def choose_action(self, session, s):
-        """Return the best action based on the a given state.
-        """
-        a = session.run(self.best_action,
-                        feed_dict={self.s_t: s})
-
-        return a
+        return x
 
 
 class DoubleQNetwork(BaseNetwork):
